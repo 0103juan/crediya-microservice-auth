@@ -1,10 +1,12 @@
 package co.com.pragma.model.user;
-import co.com.pragma.model.rol.Rol;
+import co.com.pragma.model.role.Role;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -12,11 +14,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class User {
-    private String nombre;
-    private String apellido;
+    private String firstName;
+    private String lastName;
     private String email;
-    private Integer documento_identidad;
-    private Long telefono;
-    private Double salario_base;
-    private Rol rol;
+    private Integer idNumber;
+    private Long phone;
+    private Double baseSalary;
+    private Role role;
+    private LocalDate birthDate;
+    private String address;
 }

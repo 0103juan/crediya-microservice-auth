@@ -1,7 +1,7 @@
 package co.com.pragma.model.exceptions;
 
-public class RoleNotFoundException extends RuntimeException {
-    public RoleNotFoundException(String message) {
+public class InvalidRoleException extends RuntimeException {
+    public InvalidRoleException(String message) {
         super(message);
     }
 }
