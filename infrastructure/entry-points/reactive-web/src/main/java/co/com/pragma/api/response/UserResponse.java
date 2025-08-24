@@ -1,6 +1,5 @@
-package co.com.pragma.api.model;
+package co.com.pragma.api.response;
 
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    private String id = null;
     private String nombres = null;
     private String apellidos = null;
     private String email = null;
+    private String description = null;
 }

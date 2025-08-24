@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "routes.paths")
-public class UsersPath {
+public class UserPath {
     private String users;
     private String usersById;
 }

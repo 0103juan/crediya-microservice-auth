@@ -1,12 +1,9 @@
 package co.com.pragma.api.dto;
 
-import co.com.pragma.model.rol.Rol;
+import co.com.pragma.model.role.Role;
 
-public record UserDTO(String nombre,
-                         String apellido,
-                         String email,
-                         Integer documento_identidad,
-                         Long telefono,
-                         Double salario_base,
-                         Rol rol) {
+import java.time.LocalDate;
+
+public record UserDTO(
+        String firstName, String lastName, String email, Integer idNumber, Long phone, Double baseSalary, LocalDate birthDate, String address, Role role) {
 }

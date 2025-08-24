@@ -1,7 +1,9 @@
 package co.com.pragma.api;
 
-import co.com.pragma.api.model.UserRequest;
-import co.com.pragma.api.model.UserResponse;
+import co.com.pragma.api.mapper.UserMapper;
+import co.com.pragma.api.request.RegisterUserRequest;
+import co.com.pragma.api.response.UserResponse;
+import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
 import lombok.extern.log4j.Log4j2;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -12,16 +14,21 @@ import reactor.core.publisher.Mono;
 @Log4j2
 @AllArgsConstructor
 @Component
-public class GestionDeUsersApiHandler {
-//    private final UseCase someUseCase;
+public class UserApiHandler {
+    private final RegisterUserUseCase registerUserUseCase;
+    private final UserMapper userMapper;
 
-    public Mono<ServerResponse> registrarUser(ServerRequest serverRequest) {
-        return serverRequest.bodyToMono(UserRequest.class)
-                .flatMap(body -> registrarUserMock()) // TODO: Call real use case here -> someUseCase.some()
-                .flatMap(response -> ServerResponse.ok().bodyValue(response)); // TODO: Customize response here
+    public Mono<ServerResponse> listenRegisterUser(ServerRequest serverRequest) {
+        log.info("Recibida petición para registrar nuevo usuario en la ruta: {}", serverRequest.path());
+        return serverRequest.bodyToMono(RegisterUserRequest.class)
+                .flatMap(user -> {
+                    log.info("Petición válida, invocando caso de uso RegisterUserUseCase.");
+                    return registerUserUseCase.saveUser(userMapper.toModel(user));
+                })
+                .flatMap(response -> ServerResponse.ok().bodyValue(response));
     }
 
-    private Mono<UserResponse> registrarUserMock() { // TODO: Remove this mock method
+    private Mono<UserResponse> registerUserMock() { // TODO: Remove this mock method
         return Mono.fromSupplier(() -> {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             try {

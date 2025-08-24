@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -30,9 +31,9 @@ import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-@Configuration
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+//@Configuration
+//@EnableWebFluxSecurity
+//@EnableReactiveMethodSecurity
 public class AuthorizationJwt implements WebFluxConfigurer {
 
     private final String issuerUri;
@@ -56,7 +57,9 @@ public class AuthorizationJwt implements WebFluxConfigurer {
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
         http
-            .authorizeExchange(authorize -> authorize.anyExchange().authenticated())
+            .authorizeExchange(authorize -> authorize
+                    .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                    .anyExchange().authenticated())
             .oauth2ResourceServer(oauth2 ->
                     oauth2.jwt(jwtSpec ->
                             jwtSpec

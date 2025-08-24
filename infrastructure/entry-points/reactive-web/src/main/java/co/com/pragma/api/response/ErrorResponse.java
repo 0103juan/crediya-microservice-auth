@@ -1,6 +1,5 @@
-package co.com.pragma.api.model;
+package co.com.pragma.api.response;
 
-import java.util.Objects;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
