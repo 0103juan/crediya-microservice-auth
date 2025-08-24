@@ -16,7 +16,7 @@ components:
   # Esquemas de datos (Modelos)
   schemas:
     # DTO para la solicitud de creación de usuario
-    UserRequest:
+    userRequest:
       type: object
       description: Datos para registrar un nuevo usuario en el sistema.
       required:
@@ -45,7 +45,7 @@ components:
           example: "S3cur3P@ssw0rd!"
 
     # DTO para la respuesta al crear un usuario
-    UserResponse:
+    userResponse:
       type: object
       description: "Datos del usuario creado, excluyendo información sensible."
       properties:
@@ -98,9 +98,9 @@ paths:
     post:
       summary: "Registrar un nuevo usuario"
       description: "Crea un nuevo usuario en el sistema. Esta operación requiere que el solicitante (administrador/asesor) esté autenticado."
-      operationId: registrarUsuario
+      operationId: registeruser
       tags:
-        - Gestión de Usuarios
+        - Gestión de usuarios
       requestBody:
         description: "Objeto con los datos del usuario a crear."
         required: true
@@ -108,14 +108,14 @@ paths:
           application/json:
             schema:
               # Hacemos referencia al esquema que definimos en components
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/usuarioRequest'
       responses:
         '201': # 'Created' es el código correcto para un POST exitoso
-          description: "Usuario registrado exitosamente."
+          description: "usuario registrado exitosamente."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/usuarioResponse'
         '400': # 'Bad Request' para errores de validación
           description: "Solicitud inválida. Faltan datos o tienen un formato incorrecto."
           content:
