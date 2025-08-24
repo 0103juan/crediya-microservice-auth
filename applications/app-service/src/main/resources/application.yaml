@@ -30,3 +30,17 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+routes:
+  paths:
+    users: "/api/v1/users"
+    usersByEmail: "/api/v1/users/{email}"
+
+# --- Configuración Reactiva para PostgreSQL con R2DBC ---
+adapters:
+  r2dbc:
+    host: localhost
+    port: 5432
+    database: auth
+    username: postgres
+    password: admin

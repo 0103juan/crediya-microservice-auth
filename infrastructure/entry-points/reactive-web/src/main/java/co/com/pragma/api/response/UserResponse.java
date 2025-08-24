@@ -7,16 +7,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
-* Datos para registrar un nuevo usuario en el sistema.
+* Datos del user creado, excluyendo información sensible.
 */
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequest {
+public class UserResponse {
+    private String id = null;
     private String nombres = null;
     private String apellidos = null;
     private String email = null;
-    private String password = null;
 }

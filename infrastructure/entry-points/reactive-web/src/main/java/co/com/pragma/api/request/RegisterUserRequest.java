@@ -1,22 +1,21 @@
-package co.com.pragma.api.model;
+package co.com.pragma.api.request;
 
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
-* Datos del usuario creado, excluyendo información sensible.
+* Datos para registrar un nuevo user en el sistema.
 */
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
-    private String id = null;
+public class UserRequest {
     private String nombres = null;
     private String apellidos = null;
     private String email = null;
+    private String password = null;
 }
