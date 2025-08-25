@@ -31,6 +31,15 @@ management:
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs  # sigue siendo el endpoint interno de openapi
+  swagger-ui:
+    enabled: true
+    url:  /openapi/swagger.yaml   # aquí se usa el archivo estático
+    path: /swagger-ui.html
+
 routes:
   paths:
     users: "/api/v1/users"

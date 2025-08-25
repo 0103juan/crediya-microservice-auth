@@ -1,5 +1,3 @@
-// infrastructure/entry-points/reactive-web/src/main/java/co/com/pragma/api/config/GlobalExceptionHandler.java
-
 package co.com.pragma.api.config;
 
 import co.com.pragma.api.response.ErrorResponse;
@@ -7,6 +5,7 @@ import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
 import co.com.pragma.model.exceptions.InvalidRoleException;
 import co.com.pragma.model.exceptions.UserNotFoundException;
 
+import co.com.pragma.model.exceptions.UserValidationException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +76,23 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 exchange.getRequest().getPath().toString()
         );
+        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));
+    }
+
+    // Manejador para errores de validación del request
+    @ExceptionHandler(UserValidationException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleValidationException(UserValidationException ex, ServerWebExchange exchange) {
+        log.warn("Errores de validación detectados en la ruta: {}", exchange.getRequest().getPath());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(OffsetDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(ex.getMessage()) // Mensaje general de la excepción
+                .path(exchange.getRequest().getPath().toString())
+                .details(ex.getErrors()) // El mapa de errores viene directamente de la excepción
+                .build();
+
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));
     }
 }

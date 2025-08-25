@@ -26,7 +26,14 @@ public class SecurityConfig {
 
                         // 1. PERMITIMOS el acceso sin autenticación a la ruta POST para registrar usuarios.
                         .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-
+                        // Permite el acceso sin autenticación a la UI de Swagger y su definición de API
+                        .pathMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/openapi/**"
+                        ).permitAll()
                         // 2. REQUERIMOS autenticación para cualquier otra petición.
                         .anyExchange().authenticated()
                 )
