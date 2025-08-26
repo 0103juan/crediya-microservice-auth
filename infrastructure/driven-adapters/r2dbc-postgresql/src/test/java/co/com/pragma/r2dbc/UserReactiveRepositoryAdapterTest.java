@@ -33,7 +33,7 @@ class UserReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // Arrange: Preparamos nuestros objetos de prueba
+        // Arrange
         userDomain = User.builder()
                 .email("test@example.com")
                 .firstName("Test")
@@ -43,15 +43,7 @@ class UserReactiveRepositoryAdapterTest {
         userEntity.setEmail("test@example.com");
         userEntity.setFirstName("Test");
 
-        // --- ESTA ES LA CORRECCIÓN CLAVE Y DEFINITIVA ---
-        // Usamos doReturn().when() para un stubbing más seguro y explícito.
-
-        // 1. "Cuando el objectMapper reciba el objeto userDomain para mapearlo a UserEntity.class, DEVUELVE el objeto userEntity"
-        // Esto soluciona el error "Strict stubbing" en el test de guardado.
         doReturn(userEntity).when(objectMapper).map(userDomain, UserEntity.class);
-
-        // 2. "Cuando el objectMapper reciba el objeto userEntity para mapearlo a User.class, DEVUELVE el objeto userDomain"
-        // Esto soluciona el NullPointerException en el test de búsqueda.
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
     }
 

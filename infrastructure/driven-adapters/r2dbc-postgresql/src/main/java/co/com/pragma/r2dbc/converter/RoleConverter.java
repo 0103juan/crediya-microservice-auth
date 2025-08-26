@@ -5,7 +5,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
-// Esta es una forma moderna y combinada de definir los converters
 public class RoleConverter {
 
     @WritingConverter

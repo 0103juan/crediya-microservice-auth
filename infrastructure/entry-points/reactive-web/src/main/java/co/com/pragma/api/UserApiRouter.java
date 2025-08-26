@@ -19,7 +19,6 @@ public class UserApiRouter {
 
     @Bean
     public RouterFunction<ServerResponse> routerFunction() {
-        return route(POST(userPath.getUsers()), userApiHandler::listenRegisterUser);
-                //.andRoute(GET(userPath.getUsersByEmail()), userApiHandler::listenGetUserByEmail);
+        return route(POST(userPath.getUsers()), userApiHandler::listenRegister);         
     }
 }

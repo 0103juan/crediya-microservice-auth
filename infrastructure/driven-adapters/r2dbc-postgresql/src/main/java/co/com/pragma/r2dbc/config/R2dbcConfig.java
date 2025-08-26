@@ -12,7 +12,7 @@ public class R2dbcConfig {
     @Bean
     public R2dbcCustomConversions r2dbcCustomConversions() {
         return R2dbcCustomConversions.of(
-                PostgresDialect.INSTANCE, // Es una buena práctica especificar el dialecto de tu DB
+                PostgresDialect.INSTANCE, 
                 new RoleConverter.RoleToIntegerConverter(),
                 new RoleConverter.IntegerToRoleConverter()
         );

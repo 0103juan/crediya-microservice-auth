@@ -20,7 +20,6 @@ import java.time.OffsetDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Manejador para todas las demás excepciones no controladas
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<ErrorResponse>> handleGenericException(Exception ex, ServerWebExchange exchange) {
         log.error("Error interno del servidor en la ruta: {}", exchange.getRequest().getPath(), ex);
@@ -29,13 +28,12 @@ public class GlobalExceptionHandler {
                 OffsetDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Ocurrió un error inesperado.", // Mensaje genérico para no exponer detalles
+                "Ocurrió un error inesperado.",
                 exchange.getRequest().getPath().toString()
         );
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    // Manejador para la excepción de Email Duplicado
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleEmailAlreadyExists(EmailAlreadyExistsException ex, ServerWebExchange exchange) {
         log.error("Conflicto: El email ya existe. Path: {}", exchange.getRequest().getPath(), ex);
@@ -50,7 +48,6 @@ public class GlobalExceptionHandler {
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
     }
 
-    // Manejador para la excepción de Usuario No Encontrado
     @ExceptionHandler(UserNotFoundException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleUserNotFound(UserNotFoundException ex, ServerWebExchange exchange) {
         log.error("No encontrado: El recurso solicitado no existe. Path: {}", exchange.getRequest().getPath(), ex);
@@ -79,7 +76,6 @@ public class GlobalExceptionHandler {
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));
     }
 
-    // Manejador para errores de validación del request
     @ExceptionHandler(UserValidationException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleValidationException(UserValidationException ex, ServerWebExchange exchange) {
         log.warn("Errores de validación detectados en la ruta: {}", exchange.getRequest().getPath());
@@ -88,9 +84,9 @@ public class GlobalExceptionHandler {
                 .timestamp(OffsetDateTime.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage()) // Mensaje general de la excepción
+                .message(ex.getMessage())
                 .path(exchange.getRequest().getPath().toString())
-                .details(ex.getErrors()) // El mapa de errores viene directamente de la excepción
+                .details(ex.getErrors())
                 .build();
 
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));

@@ -4,7 +4,6 @@ import co.com.pragma.api.config.SecurityConfig;
 import co.com.pragma.api.config.UserPath;
 import co.com.pragma.api.mapper.UserMapper;
 import co.com.pragma.api.request.RegisterUserRequest;
-import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
 import co.com.pragma.model.user.User;
 import co.com.pragma.requestvalidator.RequestValidator;
 import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
@@ -26,7 +25,6 @@ import java.time.LocalDate;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-// Ya no necesitamos importar UserPath aquí porque lo proveeremos en el TestConfig
 @WebFluxTest
 @ContextConfiguration(classes = {UserApiRouter.class, SecurityConfig.class, UserApiHandler.class, UserApiHandlerTest.TestConfig.class})
 class UserApiHandlerTest {
@@ -49,11 +47,9 @@ class UserApiHandlerTest {
             return Mappers.getMapper(UserMapper.class);
         }
 
-        // Creamos un Bean para UserPath y le asignamos la ruta manualmente
         @Bean
         public UserPath userPath() {
             UserPath userPath = new UserPath();
-            // Este valor debe coincidir con el que usas en la prueba
             userPath.setUsers("/api/v1/users");
             return userPath;
         }
@@ -94,7 +90,6 @@ class UserApiHandlerTest {
     @Test
     void registerUser_whenRequestIsValid_shouldReturnCreated() {
         // Arrange
-        // **CORRECCIÓN:** Devolvemos el objeto request para que la cadena flatMap continúe.
         when(requestValidator.validate(any(RegisterUserRequest.class))).thenReturn(Mono.just(validRequest));
         when(registerUserUseCase.saveUser(any(User.class))).thenReturn(Mono.just(userDomain));
 
@@ -104,7 +99,7 @@ class UserApiHandlerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(validRequest)
                 .exchange()
-                .expectStatus().isCreated() // Ahora debería ser 201
+                .expectStatus().isCreated()
                 .expectBody()
                 .jsonPath("$.email").isEqualTo("jane.doe@example.com");
     }

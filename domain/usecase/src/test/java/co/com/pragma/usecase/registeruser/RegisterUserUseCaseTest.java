@@ -64,7 +64,6 @@ class RegisterUserUseCaseTest {
     void saveUser_whenEmailAlreadyExists_shouldReturnError() {
         // Arrange
         when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.just(testUser));
-        // Se agrega esta línea para evitar el NPE en la construcción del Mono
         when(userRepository.saveUser(any(User.class))).thenReturn(Mono.empty());
 
         // Act

@@ -29,14 +29,12 @@ public class RequestValidator {
             return Mono.just(obj);
         }
 
-        // Convierte las violaciones a un mapa de errores simple
         Map<String, String> errorMap = violations.stream()
                 .collect(Collectors.toMap(
                         violation -> violation.getPropertyPath().toString(),
                         ConstraintViolation::getMessage
                 ));
 
-        // Lanza la excepción del dominio con el mapa de errores
         return Mono.error(new UserValidationException("Error de validación de la solicitud.", errorMap));
     }
 }

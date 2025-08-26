@@ -20,15 +20,10 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
-                // Deshabilitamos la protección CSRF porque es una API stateless que usará tokens.
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(withDefaults())
-                // Definimos las reglas de autorización para los endpoints.
                 .authorizeExchange(exchange -> exchange
-
-                        // 1. PERMITIMOS el acceso sin autenticación a la ruta POST para registrar usuarios.
                         .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
-                        // Permite el acceso sin autenticación a la UI de Swagger y su definición de API
                         .pathMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -36,7 +31,6 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/openapi/**"
                         ).permitAll()
-                        // 2. REQUERIMOS autenticación para cualquier otra petición.
                         .anyExchange().authenticated()
                 )
                 .build();

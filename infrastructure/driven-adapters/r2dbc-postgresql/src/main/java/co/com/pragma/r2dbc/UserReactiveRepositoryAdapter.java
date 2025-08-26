@@ -32,21 +32,16 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Transactional
     public Mono<User> saveUser(User user) {
         log.info("Iniciando operación de guardado para el usuario con email: {}", user.getEmail());
-
-        // Simplemente se llama a super.save() con el objeto de dominio.
-        // La clase ReactiveAdapterOperations se encargará de la conversión a UserEntity.
         return super.save(user)
                 .doOnSuccess(savedUser ->
                         log.info("Entidad de usuario guardada exitosamente en la base de datos."));
-        // Ya no es necesario mapear la respuesta, porque super.save() ya devuelve un Mono<User>.
     }
 
     @Override
     public Mono<User> findByEmail(String email) {
         log.debug("Buscando usuario por email en la base de datos: {}", email);
-        // Llamamos al metodo del repositorio Spring Data (devuelve Mono<UserEntity>).
         return repository.findByEmail(email)
-                .map(this::toEntity); // Mapeamos el resultado (UserEntity) al modelo de dominio (User).
+                .map(this::toEntity);
     }
 
 

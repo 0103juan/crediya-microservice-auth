@@ -23,7 +23,7 @@ public class UserApiHandler {
     private final UserMapper userMapper;
     private final RequestValidator validator;
 
-    public Mono<ServerResponse> listenRegisterUser(ServerRequest serverRequest) {
+    public Mono<ServerResponse> listenRegister(ServerRequest serverRequest) {
         log.info("Recibida petición para registrar nuevo usuario en la ruta: {}", serverRequest.path());
         return serverRequest.bodyToMono(RegisterUserRequest.class)
                 .flatMap(validator::validate)
@@ -32,11 +32,8 @@ public class UserApiHandler {
                     return registerUserUseCase.saveUser(userMapper.toModel(user));
                 })
                 .flatMap(savedUser -> {
-                    // Creamos el response
                     UserResponse userResponse = userMapper.toResponse(savedUser);
                     URI location = URI.create("/api/v1/users/" + savedUser.getIdNumber());
-
-                    // Usamos .created(location) para añadir el encabezado Location
                     return ServerResponse.created(location)
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(userResponse);
