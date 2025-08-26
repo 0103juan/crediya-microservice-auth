@@ -1,21 +1,21 @@
 package co.com.pragma.api.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
 * Datos del user creado, excluyendo información sensible.
 */
 
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserResponse {
-    private String nombres = null;
-    private String apellidos = null;
+    private String firstName = null;
+    private String lastName = null;
     private String email = null;
+    private Long idNumber = null;
     private String description = null;
 }

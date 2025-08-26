@@ -1,9 +1,13 @@
 package co.com.pragma.model.role;
-import lombok.*;
 
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.stream.Stream;
 
+@Getter
+@RequiredArgsConstructor
 public enum Role {
     ROLE_ADMIN(1, "Administrador del sistema con todos los permisos"),
     ROLE_CLIENTE(2, "Cliente que puede solicitar productos y ver su estado"),
@@ -11,22 +15,7 @@ public enum Role {
 
 
     private final Integer id;
-    private final String description; // <-- Nuevo campo
-
-    // Constructor actualizado
-    Role(Integer id, String description) {
-        this.id = id;
-        this.description = description;
-    }
-
-    public Integer getId() {
-        return this.id;
-    }
-
-    // Getter para la descripción
-    public String getDescription() {
-        return this.description;
-    }
+    private final String description;
 
     public static Role of(int id) {
         return Stream.of(Role.values())

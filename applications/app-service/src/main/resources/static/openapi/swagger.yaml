@@ -61,7 +61,7 @@ paths:
                   baseSalary: 2500000.0
                   birthDate: "1990-05-15"
                   address: "Calle Falsa 123, Ciudad"
-                  role: "CLIENTE"
+                  role: "ROLE_CLIENTE"
       responses:
         '201': # 'Created'
           description: "Usuario registrado exitosamente."
@@ -131,7 +131,7 @@ components:
         - baseSalary
         - birthDate
         - address
-        - role
+        - enums
       properties:
         firstName:
           type: string
@@ -184,7 +184,7 @@ components:
         role:
           type: string
           description: "Rol asignado al usuario en el sistema."
-          example: "CLIENTE"
+          example: "ROLE_CLIENTE"
 
     UserResponse:
       type: object
