@@ -191,11 +191,11 @@ components:
       title: "Esquema de respuesta de usuario"
       description: "Datos públicos del usuario una vez ha sido creado."
       properties:
-        nombres:
+        firstName:
           type: string
           description: "Nombres del usuario."
           example: "Carlos"
-        apellidos:
+        lastName:
           type: string
           description: "Apellidos del usuario."
           example: "Santana"
@@ -204,32 +204,41 @@ components:
           format: email
           description: "Correo electrónico del usuario."
           example: "carlos.santana@example.com"
+        idNumber:
+          type: integer
+          format: int64
+          description: "Número de identificación del usuario."
+          example: 123456789
         description:
           type: string
           description: "Descripción adicional o estado."
           example: "Usuario creado correctamente."
 
-    ErrorResponse:
-      type: object
-      title: "Esquema de respuesta de error"
-      description: "Estructura estándar para devolver información sobre errores."
-      properties:
-        timestamp:
-          type: string
-          format: date-time
-          description: "Fecha y hora del error."
-        status:
-          type: integer
-          description: "Código de estado HTTP."
-        error:
-          type: string
-          description: "Nombre del error HTTP."
-        message:
-          type: string
-          description: "Mensaje descriptivo del error."
-        path:
-          type: string
-          description: "Ruta del endpoint invocado."
+      ErrorResponse:
+        type: object
+        title: "Esquema de respuesta de error"
+        description: "Estructura estándar para devolver información sobre errores."
+        properties:
+          timestamp:
+            type: string
+            format: date-time
+            description: "Fecha y hora del error."
+          status:
+            type: integer
+            description: "Código de estado HTTP."
+          error:
+            type: string
+            description: "Nombre del error HTTP."
+          message:
+            type: string
+            description: "Mensaje descriptivo del error."
+          path:
+            type: string
+            description: "Ruta del endpoint invocado."
+          details:
+            type: object
+            description: "Mapa con detalles adicionales del error, especialmente para validaciones."
+            additionalProperties: true
 
   securitySchemes:
     BearerAuth:
