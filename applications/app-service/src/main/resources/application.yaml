@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
     name: "auth"
@@ -44,6 +44,7 @@ routes:
   paths:
     users: "/api/v1/users"
     usersByEmail: "/api/v1/users/{email}"
+    usersById: "/api/v1/users/{idNumber}"
 
 # --- Configuración Reactiva para PostgreSQL con R2DBC ---
 adapters:

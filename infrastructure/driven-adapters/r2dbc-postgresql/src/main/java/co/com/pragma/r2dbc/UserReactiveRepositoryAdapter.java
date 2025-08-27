@@ -44,5 +44,12 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                 .map(this::toEntity);
     }
 
+    @Override
+    public Mono<User> findByIdNumber(Integer idNumber) {
+        log.debug("Buscando usuario por número de documento en la base de datos: {}", idNumber);
+        return repository.findByIdNumber(idNumber)
+                .map(this::toEntity);
+    }
+
 
 }

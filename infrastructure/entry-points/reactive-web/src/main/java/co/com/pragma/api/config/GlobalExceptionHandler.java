@@ -1,11 +1,8 @@
 package co.com.pragma.api.config;
 
 import co.com.pragma.api.response.ErrorResponse;
-import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
-import co.com.pragma.model.exceptions.InvalidRoleException;
-import co.com.pragma.model.exceptions.UserNotFoundException;
+import co.com.pragma.model.exceptions.*;
 
-import co.com.pragma.model.exceptions.UserValidationException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +34,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleEmailAlreadyExists(EmailAlreadyExistsException ex, ServerWebExchange exchange) {
         log.error("Conflicto: El email ya existe. Path: {}", exchange.getRequest().getPath(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                OffsetDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                exchange.getRequest().getPath().toString()
+        );
+        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
+    }
+
+    @ExceptionHandler(IdNumberAlreadyExistsException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleIdNumberAlreadyExists(IdNumberAlreadyExistsException ex, ServerWebExchange exchange) {
+        log.error("Conflicto: El ID Number ya existe. Path: {}", exchange.getRequest().getPath(), ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 OffsetDateTime.now(),

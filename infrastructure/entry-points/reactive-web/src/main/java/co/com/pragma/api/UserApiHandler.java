@@ -3,7 +3,9 @@ package co.com.pragma.api;
 import co.com.pragma.api.mapper.UserMapper;
 import co.com.pragma.api.request.RegisterUserRequest;
 import co.com.pragma.api.response.UserResponse;
+import co.com.pragma.model.exceptions.UserNotFoundException;
 import co.com.pragma.requestvalidator.RequestValidator;
+import co.com.pragma.usecase.finduser.FindUserUseCase;
 import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
 import lombok.extern.log4j.Log4j2;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,7 @@ import java.net.URI;
 @Component
 public class UserApiHandler {
     private final RegisterUserUseCase registerUserUseCase;
+    private final FindUserUseCase findUserUseCase;
     private final UserMapper userMapper;
     private final RequestValidator validator;
 
@@ -38,6 +41,28 @@ public class UserApiHandler {
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(userResponse);
                 });
+    }
+
+    public Mono<ServerResponse> listenFindByIdNumber(ServerRequest serverRequest) {
+        String idNumber = serverRequest.pathVariable("idNumber");
+        log.info("Recibida petición de consulta para el idNumber: {}", idNumber);
+
+        return findUserUseCase.findByIdNumber(Integer.valueOf(idNumber))
+                .flatMap(user -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(userMapper.toResponse(user)))
+                .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con idNumber " + idNumber + " no encontrado.")));
+    }
+
+    public Mono<ServerResponse> listenFindByEmail(ServerRequest serverRequest) {
+        String email = serverRequest.pathVariable("email");
+        log.info("Recibida petición de consulta para el email: {}", email);
+
+        return findUserUseCase.findByEmail(email)
+                .flatMap(user -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(userMapper.toResponse(user)))
+                .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con email " + email + " no encontrado.")));
     }
 
 }
