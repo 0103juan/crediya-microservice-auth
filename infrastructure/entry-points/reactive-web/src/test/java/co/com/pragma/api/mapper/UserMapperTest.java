@@ -20,7 +20,7 @@ class UserMapperTest {
         request.setFirstName("Juan");
         request.setLastName("Perez");
         request.setEmail("juan.perez@example.com");
-        request.setIdNumber(12345678L);
+        request.setIdNumber("12345678");
         request.setPhone(3101234567L);
         request.setBaseSalary(2500000.0);
         request.setBirthDate(LocalDate.of(1995, 5, 10));
@@ -35,7 +35,7 @@ class UserMapperTest {
         assertEquals("Juan", user.getFirstName());
         assertEquals("Perez", user.getLastName());
         assertEquals("juan.perez@example.com", user.getEmail());
-        assertEquals(12345678, user.getIdNumber().intValue());
+        assertEquals("12345678", user.getIdNumber());
         assertEquals(3101234567L, user.getPhone());
         assertEquals(2500000.0, user.getBaseSalary());
         assertEquals(LocalDate.of(1995, 5, 10), user.getBirthDate());

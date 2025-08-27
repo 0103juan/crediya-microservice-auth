@@ -33,7 +33,7 @@ class UserReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // Arrange
+        // En setUp, solo creamos los objetos POJO. NADA de mocks aquí.
         userDomain = User.builder()
                 .email("test@example.com")
                 .firstName("Test")
@@ -42,14 +42,13 @@ class UserReactiveRepositoryAdapterTest {
         userEntity = new UserEntity();
         userEntity.setEmail("test@example.com");
         userEntity.setFirstName("Test");
-
-        doReturn(userEntity).when(objectMapper).map(userDomain, UserEntity.class);
-        doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
     }
 
     @Test
     void saveUser_shouldCallRepositoryAndReturnUser() {
-        // Arrange
+        // Arrange: Mocks específicos para este test.
+        doReturn(userEntity).when(objectMapper).map(userDomain, UserEntity.class);
+        doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.save(any(UserEntity.class))).thenReturn(Mono.just(userEntity));
 
         // Act
@@ -61,4 +60,36 @@ class UserReactiveRepositoryAdapterTest {
                 .verifyComplete();
     }
 
+    @Test
+    void findByEmail_shouldReturnUser() {
+        // Arrange: Mock específico para este test (solo se necesita un mapeo).
+        doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
+        when(userReactiveRepository.findByEmail("test@example.com")).thenReturn(Mono.just(userEntity));
+
+        // Act
+        Mono<User> result = adapter.findByEmail("test@example.com");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(foundUser -> foundUser.getEmail().equals(userDomain.getEmail()))
+                .verifyComplete();
+    }
+
+    @Test
+    void findByIdNumber_shouldReturnUser() {
+        // Arrange
+        userDomain.setIdNumber("12345");
+        userEntity.setIdNumber("12345");
+        // Arrange: Mock específico para este test.
+        doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
+        when(userReactiveRepository.findByIdNumber("12345")).thenReturn(Mono.just(userEntity));
+
+        // Act
+        Mono<User> result = adapter.findByIdNumber("12345");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(foundUser -> foundUser.getIdNumber().equals(userDomain.getIdNumber()))
+                .verifyComplete();
+    }
 }
