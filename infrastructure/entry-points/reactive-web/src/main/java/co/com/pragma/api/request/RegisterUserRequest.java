@@ -27,10 +27,9 @@ public class RegisterUserRequest {
     @Size(max = 100, message = "El correo electrónico no puede exceder los 100 caracteres.")
     private String email;
 
-    @NotNull(message = "El número de documento no puede ser nulo.")
-    @DecimalMin(value = "1000000", message = "El número de documento debe tener al menos 7 dígitos y/o ser positivo.")
-    @DecimalMax(value = "999999999999999", message = "El número de documento debe tener máximo 15 dígitos.")
-    private Long idNumber;
+    @NotBlank(message = "El número de documento no puede estar vacío.")
+    @Size(min = 7, max = 15, message = "El número de documento debe tener entre 7 y 15 dígitos.")
+    private String idNumber;
 
     @NotNull(message = "El teléfono no puede ser nulo.")
     @Positive(message = "El teléfono debe ser un número positivo.")

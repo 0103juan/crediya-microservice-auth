@@ -7,15 +7,11 @@ import lombok.*;
 */
 
 @Data
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class UserResponse {
-    private String firstName = null;
-    private String lastName = null;
-    private String email = null;
-    private Long idNumber = null;
-    private String description = null;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String idNumber;
+    private String description;
 }

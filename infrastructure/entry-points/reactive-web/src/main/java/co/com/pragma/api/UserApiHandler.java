@@ -36,6 +36,7 @@ public class UserApiHandler {
                 })
                 .flatMap(savedUser -> {
                     UserResponse userResponse = userMapper.toResponse(savedUser);
+                    userResponse.setDescription("Usuario registrado exitosamente");
                     URI location = URI.create("/api/v1/users/" + savedUser.getIdNumber());
                     return ServerResponse.created(location)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -47,10 +48,14 @@ public class UserApiHandler {
         String idNumber = serverRequest.pathVariable("idNumber");
         log.info("Recibida petición de consulta para el idNumber: {}", idNumber);
 
-        return findUserUseCase.findByIdNumber(Integer.valueOf(idNumber))
-                .flatMap(user -> ServerResponse.ok()
+        return findUserUseCase.findByIdNumber(idNumber)
+                .flatMap(user -> {
+                    UserResponse userResponse = userMapper.toResponse(user);
+                    userResponse.setDescription("Usuario encontrado exitosamente");
+                    return ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userMapper.toResponse(user)))
+                        .bodyValue(userResponse);
+                })
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con idNumber " + idNumber + " no encontrado.")));
     }
 
@@ -59,9 +64,13 @@ public class UserApiHandler {
         log.info("Recibida petición de consulta para el email: {}", email);
 
         return findUserUseCase.findByEmail(email)
-                .flatMap(user -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userMapper.toResponse(user)))
+                .flatMap(user -> {
+                    UserResponse userResponse = userMapper.toResponse(user);
+                    userResponse.setDescription("Usuario encontrado exitosamente");
+                    return ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(userResponse);
+                })
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con email " + email + " no encontrado.")));
     }
 

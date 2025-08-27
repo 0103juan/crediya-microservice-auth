@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/users/**").permitAll()
                         .pathMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

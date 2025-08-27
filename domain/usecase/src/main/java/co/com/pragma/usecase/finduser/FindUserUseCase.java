@@ -10,7 +10,7 @@ public class FindUserUseCase {
 
     private final UserRepository userRepository;
 
-    public Mono<User> findByIdNumber(Integer idNumber) {
+    public Mono<User> findByIdNumber(String idNumber) {
         return userRepository.findByIdNumber(idNumber);
     }
 

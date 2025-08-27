@@ -15,7 +15,7 @@ import java.util.List;
 @Mapper(componentModel= "spring")
 public interface UserMapper {
 
-    @Mapping(target = "description", expression = "java(\"Usuario registrado exitosamente.\")")
+    @Mapping(target = "description", ignore = true)
     UserResponse toResponse(User user);
 
     UserDTO toDTO(User user);
