@@ -17,4 +17,8 @@ public class FindUserUseCase {
     public Mono<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public Mono<Boolean> existsByEmailOrIdNumber(String email, String idNumber){
+        return userRepository.existsByEmailOrIdNumber(email, idNumber);
+    }
 }
