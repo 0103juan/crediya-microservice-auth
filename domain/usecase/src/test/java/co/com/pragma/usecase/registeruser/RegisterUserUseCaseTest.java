@@ -1,7 +1,6 @@
 package co.com.pragma.usecase.registeruser;
 
-import co.com.pragma.model.exceptions.EmailAlreadyExistsException;
-import co.com.pragma.model.exceptions.IdNumberAlreadyExistsException;
+import co.com.pragma.model.exceptions.DuplicateDataException;
 import co.com.pragma.model.user.User;
 import co.com.pragma.model.user.gateways.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,10 +45,9 @@ class RegisterUserUseCaseTest {
 
     @Test
     @DisplayName("Prueba de registro exitoso de un nuevo usuario")
-    void saveUser_whenEmailDoesNotExist_shouldSaveUser() {
+    void saveUser_whenUserDoesNotExist_shouldSaveUser() {
         // --- ARRANGE: Preparación ---
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.empty());
-        when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.empty());
+        when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(false));
         when(userRepository.saveUser(any(User.class))).thenReturn(Mono.just(testUser));
 
         // --- ACT: Ejecución ---
@@ -62,34 +60,17 @@ class RegisterUserUseCaseTest {
     }
 
     @Test
-    @DisplayName("Prueba de error al registrar un usuario con un email existente")
-    void saveUser_whenEmailAlreadyExists_shouldReturnError() {
+    @DisplayName("Prueba de error al registrar un usuario con un email o idNumber existente")
+    void saveUser_whenUserAlreadyExists_shouldReturnError() {
         // --- ARRANGE: Preparación ---
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.just(testUser));
-        when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.empty());
+        when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(true));
 
         // --- ACT: Ejecución ---
         Mono<User> result = registerUserUseCase.saveUser(testUser);
 
         // --- ASSERT: Verificación ---
         StepVerifier.create(result)
-                .expectError(EmailAlreadyExistsException.class)
-                .verify();
-    }
-
-    @Test
-    @DisplayName("Prueba de error al registrar un usuario con un idNumber existente")
-    void saveUser_whenIdNumberAlreadyExists_shouldReturnError() {
-        // --- ARRANGE: Preparación ---
-        when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.empty());
-        when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.just(testUser));
-
-        // --- ACT: Ejecución ---
-        Mono<User> result = registerUserUseCase.saveUser(testUser);
-
-        // --- ASSERT: Verificación ---
-        StepVerifier.create(result)
-                .expectError(IdNumberAlreadyExistsException.class)
+                .expectError(DuplicateDataException.class)
                 .verify();
     }
 }

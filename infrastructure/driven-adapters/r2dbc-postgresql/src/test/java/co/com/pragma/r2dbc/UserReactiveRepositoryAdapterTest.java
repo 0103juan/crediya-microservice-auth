@@ -33,7 +33,6 @@ class UserReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // En setUp, solo creamos los objetos POJO. NADA de mocks aquí.
         userDomain = User.builder()
                 .email("test@example.com")
                 .firstName("Test")
@@ -46,7 +45,7 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void saveUser_shouldCallRepositoryAndReturnUser() {
-        // Arrange: Mocks específicos para este test.
+        // Arrange
         doReturn(userEntity).when(objectMapper).map(userDomain, UserEntity.class);
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.save(any(UserEntity.class))).thenReturn(Mono.just(userEntity));
@@ -62,7 +61,7 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void findByEmail_shouldReturnUser() {
-        // Arrange: Mock específico para este test (solo se necesita un mapeo).
+        // Arrange
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.findByEmail("test@example.com")).thenReturn(Mono.just(userEntity));
 
@@ -80,7 +79,6 @@ class UserReactiveRepositoryAdapterTest {
         // Arrange
         userDomain.setIdNumber("12345");
         userEntity.setIdNumber("12345");
-        // Arrange: Mock específico para este test.
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.findByIdNumber("12345")).thenReturn(Mono.just(userEntity));
 

@@ -4,6 +4,9 @@ import co.com.pragma.model.exceptions.UserValidationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
@@ -21,7 +24,7 @@ class RequestValidatorTest {
 
     @Test
     void validate_whenObjectIsValid_shouldReturnMonoWithObject() {
-        // Arrange: Un objeto que cumple todas las reglas de validación.
+        // Arrange:
         ValidTestObject validObject = new ValidTestObject("test");
 
         // Act & Assert
@@ -32,7 +35,7 @@ class RequestValidatorTest {
 
     @Test
     void validate_whenObjectIsInvalid_shouldReturnMonoError() {
-        // Arrange: Un objeto que NO cumple las reglas (el campo es nulo).
+        // Arrange:
         ValidTestObject invalidObject = new ValidTestObject(null);
 
         // Act & Assert
@@ -42,9 +45,10 @@ class RequestValidatorTest {
     }
 }
 
-// Clase auxiliar para la prueba con una regla de validación simple.
+@Getter
+@AllArgsConstructor
 class ValidTestObject {
 
-    public ValidTestObject(String field) {
-    }
+    @NotBlank(message = "El campo no puede estar vacío.")
+    private String field;
 }

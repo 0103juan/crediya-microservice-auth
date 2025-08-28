@@ -40,7 +40,6 @@ class UserApiHandlerTest {
             return Mockito.mock(RegisterUserUseCase.class);
         }
 
-        // 1. AÑADIMOS EL BEAN FALTANTE PARA FindUserUseCase
         @Bean
         public FindUserUseCase findUserUseCase() {
             return Mockito.mock(FindUserUseCase.class);
@@ -56,7 +55,6 @@ class UserApiHandlerTest {
             return Mappers.getMapper(UserMapper.class);
         }
 
-        // 2. COMPLETAMOS LAS RUTAS PARA CUBRIR TODOS LOS ENDPOINTS
         @Bean
         public UserPath userPath() {
             UserPath userPath = new UserPath();
@@ -92,7 +90,6 @@ class UserApiHandlerTest {
         validRequest.setAddress("Avenida Siempre Viva 742");
         validRequest.setRole("ROLE_CLIENTE");
 
-        // Usamos el mapper real que está en el contexto
         userDomain = Mappers.getMapper(UserMapper.class).toModel(validRequest);
     }
 
@@ -115,7 +112,6 @@ class UserApiHandlerTest {
                 });
     }
 
-    // 3. NUEVO TEST PARA PROBAR LA BÚSQUEDA POR ID
     @Test
     void findByIdNumber_whenUserExists_shouldReturnOk() {
         // Arrange
@@ -132,7 +128,6 @@ class UserApiHandlerTest {
                 });
     }
 
-    // 4. NUEVO TEST PARA PROBAR LA BÚSQUEDA POR EMAIL
     @Test
     void findByEmail_whenUserExists_shouldReturnOk() {
         // Arrange
