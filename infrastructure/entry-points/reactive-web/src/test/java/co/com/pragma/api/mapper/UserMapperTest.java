@@ -102,7 +102,7 @@ class UserMapperTest {
         // Assert
         assertNotNull(dtoList);
         assertEquals(1, dtoList.size());
-        assertEquals(user.getFirstName(), dtoList.get(0).firstName());
+        assertEquals(user.getFirstName(), dtoList.getFirst().firstName());
     }
 
     @Test
