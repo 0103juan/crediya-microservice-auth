@@ -45,6 +45,20 @@ public class GlobalExceptionHandler {
         return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
     }
 
+    @ExceptionHandler(DuplicateDataException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleUserExists(DuplicateDataException ex, ServerWebExchange exchange) {
+        log.error("Conflicto: El usuario ya existe. Path: {}", exchange.getRequest().getPath(), ex);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                OffsetDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                exchange.getRequest().getPath().toString()
+        );
+        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
+    }
+
     @ExceptionHandler(IdNumberAlreadyExistsException.class)
     public Mono<ResponseEntity<ErrorResponse>> handleIdNumberAlreadyExists(IdNumberAlreadyExistsException ex, ServerWebExchange exchange) {
         log.error("Conflicto: El ID Number ya existe. Path: {}", exchange.getRequest().getPath(), ex);

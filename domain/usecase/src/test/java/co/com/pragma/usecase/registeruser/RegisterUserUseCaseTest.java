@@ -36,7 +36,6 @@ class RegisterUserUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .email("john.doe@example.com")
-                // Aseguramos que el idNumber es un String para consistencia.
                 .idNumber("123456789")
                 .phone(3001234567L)
                 .baseSalary(5000000.0)
@@ -49,11 +48,8 @@ class RegisterUserUseCaseTest {
     @DisplayName("Prueba de registro exitoso de un nuevo usuario")
     void saveUser_whenEmailDoesNotExist_shouldSaveUser() {
         // --- ARRANGE: Preparación ---
-        // El caso de uso va a llamar a findByEmail. Le decimos que devuelva "vacío" (usuario no encontrado).
         when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.empty());
-        // El caso de uso TAMBIÉN va a llamar a findByIdNumber. Le decimos que también devuelva "vacío".
         when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.empty());
-        // Finalmente, simulamos la llamada para guardar el usuario.
         when(userRepository.saveUser(any(User.class))).thenReturn(Mono.just(testUser));
 
         // --- ACT: Ejecución ---
@@ -69,10 +65,7 @@ class RegisterUserUseCaseTest {
     @DisplayName("Prueba de error al registrar un usuario con un email existente")
     void saveUser_whenEmailAlreadyExists_shouldReturnError() {
         // --- ARRANGE: Preparación ---
-        // Simulamos que el email SÍ existe.
         when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.just(testUser));
-        // AUN ASÍ, debemos simular la llamada a findByIdNumber, porque el código la ejecuta.
-        // En este caso, simulamos que el ID no existe para que el test se centre solo en el error del email.
         when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.empty());
 
         // --- ACT: Ejecución ---
@@ -88,9 +81,7 @@ class RegisterUserUseCaseTest {
     @DisplayName("Prueba de error al registrar un usuario con un idNumber existente")
     void saveUser_whenIdNumberAlreadyExists_shouldReturnError() {
         // --- ARRANGE: Preparación ---
-        // Simulamos que el email NO existe.
         when(userRepository.findByEmail(testUser.getEmail())).thenReturn(Mono.empty());
-        // Y simulamos que el idNumber SÍ existe.
         when(userRepository.findByIdNumber(testUser.getIdNumber())).thenReturn(Mono.just(testUser));
 
         // --- ACT: Ejecución ---

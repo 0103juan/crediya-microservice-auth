@@ -34,7 +34,7 @@ tags:
 
 # Definición de las rutas (endpoints)
 paths:
-  /usuarios:
+  /users:
     post:
       summary: "Registrar un nuevo usuario"
       description: "Crea un nuevo usuario en el sistema. Esta operación requiere que el solicitante esté autenticado y tenga los permisos adecuados."
@@ -56,7 +56,7 @@ paths:
                   firstName: "Carlos"
                   lastName: "Santana"
                   email: "carlos.santana@example.com"
-                  idNumber: 123456789
+                  idNumber: "123456789"
                   phone: 3101234567
                   baseSalary: 2500000.0
                   birthDate: "1990-05-15"
@@ -83,33 +83,70 @@ paths:
                     status: 400
                     error: "Bad Request"
                     message: "El rol especificado no es válido."
-                    path: "/api/v1/usuarios"
-        '401': # 'Unauthorized'
-          description: "No autorizado. Se requiere un token JWT válido."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403': # 'Forbidden'
-          description: "Acceso denegado. El usuario no tiene los permisos para esta acción."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404': # 'Not Found'
-          description: "Recurso no encontrado. Ocurre si alguna entidad relacionada no se encuentra."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                    path: "/api/v1/users"
         '409': # 'Conflict'
-          description: "Conflicto. El correo electrónico proporcionado ya está en uso."
+          description: "Conflicto. El correo electrónico o el número de documento proporcionado ya está en uso."
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '500': # 'Internal Server Error'
           description: "Error interno del servidor. Ocurrió un error inesperado al procesar la solicitud."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/{idNumber}:
+    get:
+      summary: "Buscar un usuario por número de documento"
+      description: "Obtiene la información de un usuario a partir de su número de documento."
+      operationId: findUserByIdNumber
+      tags:
+        - Gestión de Usuarios
+      parameters:
+        - name: idNumber
+          in: path
+          required: true
+          description: "Número de documento del usuario a buscar."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Usuario encontrado exitosamente."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: "Usuario no encontrado."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/email/{email}:
+    get:
+      summary: "Buscar un usuario por correo electrónico"
+      description: "Obtiene la información de un usuario a partir de su dirección de correo electrónico."
+      operationId: findUserByEmail
+      tags:
+        - Gestión de Usuarios
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: "Correo electrónico del usuario a buscar."
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: "Usuario encontrado exitosamente."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: "Usuario no encontrado."
           content:
             application/json:
               schema:
@@ -131,7 +168,7 @@ components:
         - baseSalary
         - birthDate
         - address
-        - enums
+        - role
       properties:
         firstName:
           type: string
@@ -154,10 +191,11 @@ components:
           example: "carlos.santana@example.com"
           maxLength: 100
         idNumber:
-          type: integer
-          format: int64
+          type: string
           description: "Número de identificación del usuario."
-          example: 123456789
+          example: "123456789"
+          minLength: 7
+          maxLength: 15
         phone:
           type: integer
           format: int64
@@ -185,6 +223,10 @@ components:
           type: string
           description: "Rol asignado al usuario en el sistema."
           example: "ROLE_CLIENTE"
+          enum:
+            - ROLE_ADMIN
+            - ROLE_CLIENTE
+            - ROLE_ASESOR
 
     UserResponse:
       type: object
@@ -205,10 +247,9 @@ components:
           description: "Correo electrónico del usuario."
           example: "carlos.santana@example.com"
         idNumber:
-          type: integer
-          format: int64
+          type: string
           description: "Número de identificación del usuario."
-          example: 123456789
+          example: "123456789"
         description:
           type: string
           description: "Descripción adicional o estado."
