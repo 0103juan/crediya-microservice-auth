@@ -12,11 +12,45 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GlobalExceptionHandlerTest {
 
     private final GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler();
+
+    @Test
+    void handleGenericException() {
+        Exception ex = new Exception("Error inesperado.");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleGenericException(ex, exchange);
+
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
+                    assertNotNull(entity.getBody());
+                    assertEquals("Ocurrió un error inesperado.", entity.getBody().getMessage());
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), entity.getBody().getError());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleDuplicateDataException() {
+        DuplicateDataException ex = new DuplicateDataException("El usuario ya existe.");
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleUserExists(ex, exchange);
+
+        StepVerifier.create(response)
+                .assertNext(entity -> {
+                    assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
+                    assertNotNull(entity.getBody());
+                    assertEquals("El usuario ya existe.", entity.getBody().getMessage());
+                })
+                .verifyComplete();
+    }
+
 
     @Test
     void handleEmailAlreadyExists() {
@@ -27,7 +61,7 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(response)
                 .assertNext(entity -> {
                     assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
-                    Assertions.assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody());
                     assertEquals("El email ya existe.", entity.getBody().getMessage());
                 })
                 .verifyComplete();
@@ -42,7 +76,7 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(response)
                 .assertNext(entity -> {
                     assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
-                    Assertions.assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody());
                     assertEquals("El ID ya existe.", entity.getBody().getMessage());
                 })
                 .verifyComplete();
@@ -57,7 +91,7 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(response)
                 .assertNext(entity -> {
                     assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
-                    Assertions.assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody());
                     assertEquals("Usuario no encontrado.", entity.getBody().getMessage());
                 })
                 .verifyComplete();
@@ -72,7 +106,7 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(response)
                 .assertNext(entity -> {
                     assertEquals(HttpStatus.BAD_REQUEST, entity.getStatusCode());
-                    Assertions.assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody());
                     assertEquals("Rol inválido.", entity.getBody().getMessage());
                 })
                 .verifyComplete();
@@ -87,8 +121,10 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(response)
                 .assertNext(entity -> {
                     assertEquals(HttpStatus.BAD_REQUEST, entity.getStatusCode());
-                    Assertions.assertNotNull(entity.getBody());
+                    assertNotNull(entity.getBody());
                     assertEquals("Error de validación.", entity.getBody().getMessage());
+                    assertNotNull(entity.getBody().getDetails());
+                    assertEquals("mensaje", entity.getBody().getDetails().get("campo"));
                 })
                 .verifyComplete();
     }
