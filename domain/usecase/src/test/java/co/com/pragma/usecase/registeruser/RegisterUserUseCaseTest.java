@@ -46,14 +46,9 @@ class RegisterUserUseCaseTest {
     @Test
     @DisplayName("Prueba de registro exitoso de un nuevo usuario")
     void saveUser_whenUserDoesNotExist_shouldSaveUser() {
-        // --- ARRANGE: Preparación ---
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(false));
         when(userRepository.saveUser(any(User.class))).thenReturn(Mono.just(testUser));
-
-        // --- ACT: Ejecución ---
         Mono<User> result = registerUserUseCase.saveUser(testUser);
-
-        // --- ASSERT: Verificación ---
         StepVerifier.create(result)
                 .expectNextMatches(savedUser -> savedUser.getEmail().equals("john.doe@example.com"))
                 .verifyComplete();
@@ -62,13 +57,8 @@ class RegisterUserUseCaseTest {
     @Test
     @DisplayName("Prueba de error al registrar un usuario con un email o idNumber existente")
     void saveUser_whenUserAlreadyExists_shouldReturnError() {
-        // --- ARRANGE: Preparación ---
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(true));
-
-        // --- ACT: Ejecución ---
         Mono<User> result = registerUserUseCase.saveUser(testUser);
-
-        // --- ASSERT: Verificación ---
         StepVerifier.create(result)
                 .expectError(DuplicateDataException.class)
                 .verify();

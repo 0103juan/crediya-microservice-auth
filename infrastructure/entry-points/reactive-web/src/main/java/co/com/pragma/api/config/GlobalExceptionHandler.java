@@ -1,119 +1,74 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.response.ErrorResponse;
-import co.com.pragma.model.exceptions.*;
-
+import co.com.pragma.api.response.ApiResponse;
+import co.com.pragma.api.response.CustomStatus;
+import co.com.pragma.model.exceptions.DuplicateDataException;
+import co.com.pragma.model.exceptions.InvalidRoleException;
+import co.com.pragma.model.exceptions.UserNotFoundException;
+import co.com.pragma.model.exceptions.UserValidationException;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.boot.autoconfigure.web.WebProperties;
+import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 
+@Component
+@Order(-2)
 @Log4j2
-@RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
-    @ExceptionHandler(Exception.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleGenericException(Exception ex, ServerWebExchange exchange) {
-        log.error("Error interno del servidor en la ruta: {}", exchange.getRequest().getPath(), ex);
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Ocurrió un error inesperado.",
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR));
+    public GlobalExceptionHandler(ErrorAttributes errorAttributes, ApplicationContext applicationContext,
+                                  ServerCodecConfigurer serverCodecConfigurer) {
+        super(errorAttributes, new WebProperties.Resources(), applicationContext);
+        super.setMessageWriters(serverCodecConfigurer.getWriters());
+        super.setMessageReaders(serverCodecConfigurer.getReaders());
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleEmailAlreadyExists(EmailAlreadyExistsException ex, ServerWebExchange exchange) {
-        log.error("Conflicto: El email ya existe. Path: {}", exchange.getRequest().getPath(), ex);
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
+    @Override
+    protected RouterFunction<ServerResponse> getRoutingFunction(final ErrorAttributes errorAttributes) {
+        return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
     }
 
-    @ExceptionHandler(DuplicateDataException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleUserExists(DuplicateDataException ex, ServerWebExchange exchange) {
-        log.error("Conflicto: El usuario ya existe. Path: {}", exchange.getRequest().getPath(), ex);
+    private Mono<ServerResponse> renderErrorResponse(final ServerRequest request) {
+        Throwable error = getError(request);
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
-    }
+        CustomStatus customStatus = CustomStatus.INTERNAL_SERVER_ERROR;
+        Map<String, List<String>> errors = null;
 
-    @ExceptionHandler(IdNumberAlreadyExistsException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleIdNumberAlreadyExists(IdNumberAlreadyExistsException ex, ServerWebExchange exchange) {
-        log.error("Conflicto: El ID Number ya existe. Path: {}", exchange.getRequest().getPath(), ex);
+        if (error instanceof DuplicateDataException) {
+            customStatus = CustomStatus.USER_ALREADY_EXISTS;
+        } else if (error instanceof UserNotFoundException) {
+            customStatus = CustomStatus.USER_NOT_FOUND;
+        } else if (error instanceof InvalidRoleException) {
+            customStatus = CustomStatus.INVALID_ROLE;
+        } else if (error instanceof UserValidationException e) {
+            customStatus = CustomStatus.USER_VALIDATION_ERROR;
+            errors = e.getErrors();
+        }
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                ex.getMessage(),
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT));
-    }
+        log.error("Error manejado: {} - Status: {} - Path: {}", customStatus.getMessage(), customStatus.getHttpStatus(), request.path(), error);
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleUserNotFound(UserNotFoundException ex, ServerWebExchange exchange) {
-        log.error("No encontrado: El recurso solicitado no existe. Path: {}", exchange.getRequest().getPath(), ex);
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                ex.getMessage(),
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND));
-    }
-
-    @ExceptionHandler(InvalidRoleException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleInvalidRole(InvalidRoleException ex, ServerWebExchange exchange) {
-        log.warn("Se recibió un rol inválido en la petición: {}", ex.getMessage());
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                OffsetDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ex.getMessage(),
-                exchange.getRequest().getPath().toString()
-        );
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));
-    }
-
-    @ExceptionHandler(UserValidationException.class)
-    public Mono<ResponseEntity<ErrorResponse>> handleValidationException(UserValidationException ex, ServerWebExchange exchange) {
-        log.warn("Errores de validación detectados en la ruta: {}", exchange.getRequest().getPath());
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(OffsetDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
-                .message(ex.getMessage())
-                .path(exchange.getRequest().getPath().toString())
-                .details(ex.getErrors())
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .status(customStatus.getHttpStatus().value())
+                .code(customStatus.getCode())
+                .message(error.getMessage())
+                .path(request.path())
+                .errors(errors)
                 .build();
 
-        return Mono.just(new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST));
+        return ServerResponse.status(customStatus.getHttpStatus())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(apiResponse));
     }
+
 }

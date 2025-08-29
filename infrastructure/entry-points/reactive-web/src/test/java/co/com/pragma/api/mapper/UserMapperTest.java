@@ -50,10 +50,10 @@ class UserMapperTest {
 
     @Test
     void shouldMapRegisterUserRequestToUser() {
-        // Act
+        
         User mappedUser = userMapper.toModel(request);
 
-        // Assert
+        
         assertNotNull(mappedUser);
         assertEquals("Juan", mappedUser.getFirstName());
         assertEquals("Perez", mappedUser.getLastName());
@@ -68,10 +68,10 @@ class UserMapperTest {
 
     @Test
     void shouldMapUserToUserResponse() {
-        // Act
+        
         UserResponse response = userMapper.toResponse(user);
 
-        // Assert
+        
         assertNotNull(response);
         assertEquals(user.getFirstName(), response.getFirstName());
         assertEquals(user.getLastName(), response.getLastName());
@@ -81,10 +81,10 @@ class UserMapperTest {
 
     @Test
     void shouldMapUserToUserDTO() {
-        // Act
+        
         UserDTO dto = userMapper.toDTO(user);
 
-        // Assert
+        
         assertNotNull(dto);
         assertEquals(user.getFirstName(), dto.firstName());
         assertEquals(user.getEmail(), dto.email());
@@ -93,25 +93,58 @@ class UserMapperTest {
 
     @Test
     void shouldMapUserListToUserDTOList() {
-        // Arrange
+        
         List<User> userList = List.of(user);
 
-        // Act
+        
         List<UserDTO> dtoList = userMapper.toListDTO(userList);
 
-        // Assert
+        
         assertNotNull(dtoList);
         assertEquals(1, dtoList.size());
         assertEquals(user.getFirstName(), dtoList.getFirst().firstName());
     }
 
     @Test
+    void shouldConvertValidStringToRole() {
+        
+        String validRoleName = "ROLE_CLIENTE";
+
+        
+        Role result = userMapper.toRole(validRoleName);
+
+        
+        assertEquals(Role.ROLE_CLIENTE, result);
+    }
+    @Test
     void shouldThrowInvalidRoleExceptionForInvalidRole() {
-        // Act & Assert
+         & Assert
         InvalidRoleException exception = assertThrows(InvalidRoleException.class, () -> {
             userMapper.toRole("ROLE_INVALIDO");
         });
 
         assertEquals("El rol 'ROLE_INVALIDO' no es válido.", exception.getMessage());
+    }
+
+    @Test
+    void shouldHandleEmptyUserList() {
+        
+        List<User> emptyUserList = List.of();
+
+        
+        List<UserDTO> dtoList = userMapper.toListDTO(emptyUserList);
+
+        
+        assertNotNull(dtoList);
+        assertTrue(dtoList.isEmpty());
+    }
+
+    @Test
+    void shouldHandleNullUserList() {
+        
+        List<UserDTO> dtoList = userMapper.toListDTO(null);
+
+        
+        assertNull(dtoList);
     }
 }

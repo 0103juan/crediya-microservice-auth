@@ -36,13 +36,13 @@ class FindUserUseCaseTest {
     @Test
     @DisplayName("Debería encontrar un usuario por su número de documento")
     void findByIdNumber_shouldReturnUser() {
-        // Arrange
+        
         when(userRepository.findByIdNumber("123456789")).thenReturn(Mono.just(testUser));
 
-        // Act
+        
         Mono<User> result = findUserUseCase.findByIdNumber("123456789");
 
-        // Assert
+        
         StepVerifier.create(result)
                 .expectNext(testUser)
                 .verifyComplete();
@@ -51,13 +51,13 @@ class FindUserUseCaseTest {
     @Test
     @DisplayName("Debería devolver vacío si no encuentra usuario por email")
     void findByEmail_whenUserNotFound_shouldReturnEmpty() {
-        // Arrange
+        
         when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Mono.empty());
 
-        // Act
+        
         Mono<User> result = findUserUseCase.findByEmail("john.doe@example.com");
 
-        // Assert
+        
         StepVerifier.create(result)
                 .verifyComplete();
     }
