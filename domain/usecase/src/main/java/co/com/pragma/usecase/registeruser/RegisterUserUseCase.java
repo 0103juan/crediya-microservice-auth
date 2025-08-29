@@ -13,12 +13,8 @@ public class RegisterUserUseCase {
 
     public Mono<User> saveUser(User userToSave) {
         return userRepository.existsByEmailOrIdNumber(userToSave.getEmail(), userToSave.getIdNumber())
-                .flatMap(exists -> {
-                    if (exists) {
-                        return Mono.error(new DuplicateDataException("El correo electrónico o el número de documento ya están registrados."));
-                    } else {
-                        return userRepository.saveUser(userToSave);
-                    }
-                });
+                .filter(exists -> !exists)
+                .switchIfEmpty(Mono.error(new DuplicateDataException("El correo electrónico o el número de documento ya están registrados.")))
+                .flatMap(result -> userRepository.saveUser(userToSave));
     }
 }

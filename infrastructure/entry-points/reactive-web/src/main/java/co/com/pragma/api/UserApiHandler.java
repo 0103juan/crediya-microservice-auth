@@ -2,13 +2,16 @@ package co.com.pragma.api;
 
 import co.com.pragma.api.mapper.UserMapper;
 import co.com.pragma.api.request.RegisterUserRequest;
+import co.com.pragma.api.response.ApiResponse;
+import co.com.pragma.api.response.CustomStatus;
 import co.com.pragma.api.response.UserResponse;
 import co.com.pragma.model.exceptions.UserNotFoundException;
+import co.com.pragma.model.user.User;
 import co.com.pragma.requestvalidator.RequestValidator;
 import co.com.pragma.usecase.finduser.FindUserUseCase;
 import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
-import lombok.extern.log4j.Log4j2;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -32,15 +35,25 @@ public class UserApiHandler {
                 .flatMap(validator::validate)
                 .flatMap(user -> {
                     log.info("Petición válida, invocando caso de uso RegisterUserUseCase.");
-                    return registerUserUseCase.saveUser(userMapper.toModel(user));
+                    User userDomain = userMapper.toModel(user);
+                    return registerUserUseCase.saveUser(userDomain);
                 })
                 .flatMap(savedUser -> {
                     UserResponse userResponse = userMapper.toResponse(savedUser);
-                    userResponse.setDescription("Usuario registrado exitosamente");
                     URI location = URI.create("/api/v1/users/" + savedUser.getIdNumber());
+                    CustomStatus status = CustomStatus.USER_CREATED_SUCCESSFULLY;
+
+                    ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                            .status(status.getHttpStatus().value())
+                            .code(status.getCode())
+                            .message(status.getMessage())
+                            .path(location.toString())
+                            .data(userResponse)
+                            .build();
+
                     return ServerResponse.created(location)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(userResponse);
+                            .bodyValue(apiResponse);
                 });
     }
 
@@ -51,10 +64,19 @@ public class UserApiHandler {
         return findUserUseCase.findByIdNumber(idNumber)
                 .flatMap(user -> {
                     UserResponse userResponse = userMapper.toResponse(user);
-                    userResponse.setDescription("Usuario encontrado exitosamente");
+                    CustomStatus status = CustomStatus.USER_FOUND_SUCCESSFULLY;
+
+                    ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                            .status(status.getHttpStatus().value())
+                            .code(status.getCode())
+                            .message(status.getMessage())
+                            .path(serverRequest.path())
+                            .data(userResponse)
+                            .build();
+
                     return ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(userResponse);
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(apiResponse);
                 })
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con idNumber " + idNumber + " no encontrado.")));
     }
@@ -66,12 +88,20 @@ public class UserApiHandler {
         return findUserUseCase.findByEmail(email)
                 .flatMap(user -> {
                     UserResponse userResponse = userMapper.toResponse(user);
-                    userResponse.setDescription("Usuario encontrado exitosamente");
+                    CustomStatus status = CustomStatus.USER_FOUND_SUCCESSFULLY;
+
+                    ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                            .status(status.getHttpStatus().value())
+                            .code(status.getCode())
+                            .message(status.getMessage())
+                            .path(serverRequest.path())
+                            .data(userResponse)
+                            .build();
+
                     return ServerResponse.ok()
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(userResponse);
+                            .bodyValue(apiResponse);
                 })
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con email " + email + " no encontrado.")));
     }
-
 }
