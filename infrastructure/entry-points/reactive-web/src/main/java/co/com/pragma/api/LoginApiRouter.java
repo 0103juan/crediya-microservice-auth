@@ -9,7 +9,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
-public class AuthRouter {
+public class LoginApiRouter {
 
     private static final String API_V_1_LOGIN = "/api/v1/login";
 
