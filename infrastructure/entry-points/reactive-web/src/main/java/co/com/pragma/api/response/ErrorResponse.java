@@ -22,7 +22,7 @@ public class ErrorResponse {
     private String error;
     private String message;
     private String path;
-    private Map<String, ?> details;
+    private Map<String, ?> errorsDetails;
 
     public ErrorResponse(OffsetDateTime timestamp, int status, String error, String message, String path) {
         this.timestamp = timestamp;
