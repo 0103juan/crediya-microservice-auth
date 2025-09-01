@@ -4,6 +4,7 @@ package co.com.pragma.api.request;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -43,7 +44,7 @@ public class RegisterUserRequest {
     @NotNull(message = "El salario base no puede ser nulo.")
     @DecimalMin(value = "0.0", inclusive = true, message = "El salario base no puede ser negativo.")
     @DecimalMax(value = "15000000.0", inclusive = true, message = "El salario base no puede exceder 15,000,000.")
-    private Double baseSalary;
+    private BigDecimal baseSalary;
 
     @NotNull(message = "La fecha de nacimiento no puede ser nula.")
     @Past(message = "La fecha de nacimiento debe ser una fecha en el pasado.")

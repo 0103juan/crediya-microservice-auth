@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -20,7 +21,7 @@ public class User {
     private String password;
     private String idNumber;
     private Long phone;
-    private Double baseSalary;
+    private BigDecimal baseSalary;
     private Role role;
     private LocalDate birthDate;
     private String address;
