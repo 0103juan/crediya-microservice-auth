@@ -17,7 +17,6 @@ class SecurityConfigsTest {
     @Autowired
     private WebTestClient webTestClient;
 
-    // Un controlador de prueba para tener endpoints a los cuales apuntar.
     @RestController
     static class TestController {
         @GetMapping("/test-secured")
@@ -40,7 +39,7 @@ class SecurityConfigsTest {
     void shouldApplySecurityHeaders() {
         webTestClient.get().uri("/api/v1/users/some-id")
                 .exchange()
-                .expectStatus().isOk() // El endpoint es público
+                .expectStatus().isOk()
                 .expectHeader().valueEquals("X-Content-Type-Options", "nosniff")
                 .expectHeader().exists("Content-Security-Policy")
                 .expectHeader().valueMatches("Strict-Transport-Security", "max-age=\\d+;")
@@ -49,8 +48,6 @@ class SecurityConfigsTest {
 
     @Test
     void shouldAllowPublicPostEndpoints() {
-        // La regla en SecurityConfig permite POST a /api/v1/users.
-        // Esperamos un 200 OK porque nuestro TestController lo maneja.
         webTestClient.post().uri("/api/v1/users")
                 .exchange()
                 .expectStatus().isOk();
@@ -58,7 +55,6 @@ class SecurityConfigsTest {
 
     @Test
     void shouldAllowPublicGetEndpoints() {
-        // La regla en SecurityConfig permite GET a /api/v1/users/**.
         webTestClient.get().uri("/api/v1/users/some-id")
                 .exchange()
                 .expectStatus().isOk();
@@ -67,9 +63,6 @@ class SecurityConfigsTest {
 
     @Test
     void shouldDenyAccessToAuthenticatedEndpoints() {
-        // El endpoint /test-secured no está en la lista de "permitAll",
-        // por lo que cae en la regla `anyExchange().authenticated()`.
-        // Una llamada sin autenticación debe ser rechazada con 401 Unauthorized.
         webTestClient.get().uri("/test-secured")
                 .exchange()
                 .expectStatus().isUnauthorized();

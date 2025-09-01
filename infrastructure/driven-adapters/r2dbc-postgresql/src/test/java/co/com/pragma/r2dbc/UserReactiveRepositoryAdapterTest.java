@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivecommons.utils.ObjectMapper;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -21,6 +22,9 @@ class UserReactiveRepositoryAdapterTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private TransactionalOperator transactionalOperator;
 
     @Mock
     private UserReactiveRepository userReactiveRepository;
@@ -45,15 +49,18 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void saveUser_shouldCallRepositoryAndReturnUser() {
-        // Arrange
+        
         doReturn(userEntity).when(objectMapper).map(userDomain, UserEntity.class);
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.save(any(UserEntity.class))).thenReturn(Mono.just(userEntity));
 
-        // Act
+        when(transactionalOperator.transactional(any(Mono.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        
         Mono<User> result = adapter.saveUser(userDomain);
 
-        // Assert
+        
         StepVerifier.create(result)
                 .expectNextMatches(savedUser -> savedUser.getEmail().equals(userDomain.getEmail()))
                 .verifyComplete();
@@ -61,14 +68,14 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void findByEmail_shouldReturnUser() {
-        // Arrange
+        
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.findByEmail("test@example.com")).thenReturn(Mono.just(userEntity));
 
-        // Act
+        
         Mono<User> result = adapter.findByEmail("test@example.com");
 
-        // Assert
+        
         StepVerifier.create(result)
                 .expectNextMatches(foundUser -> foundUser.getEmail().equals(userDomain.getEmail()))
                 .verifyComplete();
@@ -76,16 +83,16 @@ class UserReactiveRepositoryAdapterTest {
 
     @Test
     void findByIdNumber_shouldReturnUser() {
-        // Arrange
+        
         userDomain.setIdNumber("12345");
         userEntity.setIdNumber("12345");
         doReturn(userDomain).when(objectMapper).map(userEntity, User.class);
         when(userReactiveRepository.findByIdNumber("12345")).thenReturn(Mono.just(userEntity));
 
-        // Act
+        
         Mono<User> result = adapter.findByIdNumber("12345");
 
-        // Assert
+        
         StepVerifier.create(result)
                 .expectNextMatches(foundUser -> foundUser.getIdNumber().equals(userDomain.getIdNumber()))
                 .verifyComplete();

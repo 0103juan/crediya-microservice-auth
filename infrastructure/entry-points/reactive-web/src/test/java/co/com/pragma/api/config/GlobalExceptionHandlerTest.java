@@ -1,131 +1,119 @@
 package co.com.pragma.api.config;
 
-import co.com.pragma.api.response.ErrorResponse;
-import co.com.pragma.model.exceptions.*;
-import org.junit.jupiter.api.Assertions;
+import co.com.pragma.api.response.ApiResponse;
+import co.com.pragma.api.response.CustomStatus;
+import co.com.pragma.model.exceptions.DuplicateDataException;
+import co.com.pragma.model.exceptions.InvalidRoleException;
+import co.com.pragma.model.exceptions.UserNotFoundException;
+import co.com.pragma.model.exceptions.UserValidationException;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@WebFluxTest(excludeAutoConfiguration = {ReactiveSecurityAutoConfiguration.class})
+@Import({GlobalExceptionHandler.class, GlobalExceptionHandlerTest.TestRouter.class})
 class GlobalExceptionHandlerTest {
 
-    private final GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler();
+    @Autowired
+    private WebTestClient webTestClient;
 
-    @Test
-    void handleGenericException() {
-        Exception ex = new Exception("Error inesperado.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleGenericException(ex, exchange);
+    @Configuration
+    static class TestRouter {
+        @Bean
+        public RouterFunction<ServerResponse> testRoutes() {
+            return RouterFunctions
+                    .route(RequestPredicates.GET("/test-user-not-found"),
+                            request -> Mono.error(new UserNotFoundException("Usuario no encontrado.")))
+                    .andRoute(RequestPredicates.GET("/test-duplicate-data"),
+                            request -> Mono.error(new DuplicateDataException("El usuario ya existe.")))
+                    .andRoute(RequestPredicates.GET("/test-invalid-role"),
+                            request -> Mono.error(new InvalidRoleException("Rol inválido.")))
+                    .andRoute(RequestPredicates.GET("/test-user-validation"),
+                            request -> {
+                                Map<String, List<String>> errors = Collections.singletonMap("campo", List.of("mensaje"));
+                                return Mono.error(new UserValidationException("Error de validación.", errors));
+                            })
+                    .andRoute(RequestPredicates.GET("/test-generic-exception"),
+                            request -> Mono.error(new RuntimeException("Error inesperado.")));
+        }
+    }
 
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("Ocurrió un error inesperado.", entity.getBody().getMessage());
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), entity.getBody().getError());
-                })
-                .verifyComplete();
+    private void testExceptionHandler(String uri, CustomStatus expectedCustomStatus) {
+        webTestClient.get().uri(uri)
+                .exchange()
+                .expectStatus().isEqualTo(expectedCustomStatus.getHttpStatus())
+                .expectBody(new ParameterizedTypeReference<ApiResponse<Object>>() {})
+                .value(apiResponse -> {
+                    assertEquals(expectedCustomStatus.getHttpStatus().value(), apiResponse.getStatus());
+                    assertEquals(expectedCustomStatus.getCode(), apiResponse.getCode());
+                    assertNotNull(apiResponse.getMessage());
+                });
     }
 
     @Test
     void handleDuplicateDataException() {
-        DuplicateDataException ex = new DuplicateDataException("El usuario ya existe.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleUserExists(ex, exchange);
-
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("El usuario ya existe.", entity.getBody().getMessage());
-                })
-                .verifyComplete();
-    }
-
-
-    @Test
-    void handleEmailAlreadyExists() {
-        EmailAlreadyExistsException ex = new EmailAlreadyExistsException("El email ya existe.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleEmailAlreadyExists(ex, exchange);
-
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("El email ya existe.", entity.getBody().getMessage());
-                })
-                .verifyComplete();
+        testExceptionHandler(
+                "/test-duplicate-data",
+                CustomStatus.USER_ALREADY_EXISTS
+        );
     }
 
     @Test
-    void handleIdNumberAlreadyExists() {
-        IdNumberAlreadyExistsException ex = new IdNumberAlreadyExistsException("El ID ya existe.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleIdNumberAlreadyExists(ex, exchange);
-
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.CONFLICT, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("El ID ya existe.", entity.getBody().getMessage());
-                })
-                .verifyComplete();
+    void handleUserNotFoundException() {
+        testExceptionHandler(
+                "/test-user-not-found",
+                CustomStatus.USER_NOT_FOUND
+        );
     }
 
     @Test
-    void handleUserNotFound() {
-        UserNotFoundException ex = new UserNotFoundException("Usuario no encontrado.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleUserNotFound(ex, exchange);
-
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.NOT_FOUND, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("Usuario no encontrado.", entity.getBody().getMessage());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void handleInvalidRole() {
-        InvalidRoleException ex = new InvalidRoleException("Rol inválido.");
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleInvalidRole(ex, exchange);
-
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("Rol inválido.", entity.getBody().getMessage());
-                })
-                .verifyComplete();
+    void handleInvalidRoleException() {
+        testExceptionHandler(
+                "/test-invalid-role",
+                CustomStatus.INVALID_ROLE
+        );
     }
 
     @Test
     void handleUserValidationException() {
-        UserValidationException ex = new UserValidationException("Error de validación.", Collections.singletonMap("campo", "mensaje"));
-        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        Mono<ResponseEntity<ErrorResponse>> response = exceptionHandler.handleValidationException(ex, exchange);
+        CustomStatus expectedStatus = CustomStatus.USER_VALIDATION_ERROR;
 
-        StepVerifier.create(response)
-                .assertNext(entity -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, entity.getStatusCode());
-                    assertNotNull(entity.getBody());
-                    assertEquals("Error de validación.", entity.getBody().getMessage());
-                    assertNotNull(entity.getBody().getDetails());
-                    assertEquals("mensaje", entity.getBody().getDetails().get("campo"));
-                })
-                .verifyComplete();
+        webTestClient.get().uri("/test-user-validation")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(new ParameterizedTypeReference<ApiResponse<Object>>() {})
+                .value(apiResponse -> {
+                    assertEquals(expectedStatus.getHttpStatus().value(), apiResponse.getStatus());
+                    assertEquals(expectedStatus.getCode(), apiResponse.getCode());
+                    assertEquals("Error de validación.", apiResponse.getMessage());
+                    assertNotNull(apiResponse.getErrors());
+                    assertEquals(List.of("mensaje"), apiResponse.getErrors().get("campo"));
+                });
+    }
+
+    @Test
+    void handleGenericException() {
+        testExceptionHandler(
+                "/test-generic-exception",
+                CustomStatus.INTERNAL_SERVER_ERROR
+        );
     }
 }

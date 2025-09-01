@@ -8,14 +8,12 @@ import co.com.pragma.model.exceptions.InvalidRoleException;
 import co.com.pragma.model.role.Role;
 import co.com.pragma.model.user.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 
 @Mapper(componentModel= "spring")
 public interface UserMapper {
 
-    @Mapping(target = "description", ignore = true)
     UserResponse toResponse(User user);
 
     UserDTO toDTO(User user);

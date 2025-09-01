@@ -8,9 +8,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,10 +30,10 @@ public class RequestValidator {
             return Mono.just(obj);
         }
 
-        Map<String, String> errorMap = violations.stream()
-                .collect(Collectors.toMap(
+        Map<String, List<String>> errorMap = violations.stream()
+                .collect(Collectors.groupingBy(
                         violation -> violation.getPropertyPath().toString(),
-                        ConstraintViolation::getMessage
+                        Collectors.mapping(ConstraintViolation::getMessage, Collectors.toList())
                 ));
 
         return Mono.error(new UserValidationException("Error de validación de la solicitud.", errorMap));
