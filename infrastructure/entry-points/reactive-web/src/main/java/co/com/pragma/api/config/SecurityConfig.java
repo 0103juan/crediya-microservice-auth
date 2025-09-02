@@ -2,6 +2,7 @@ package co.com.pragma.api.config;
 
 import co.com.pragma.api.security.AuthenticationManager;
 import co.com.pragma.api.security.SecurityContextRepository;
+import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+@Generated
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor

@@ -1,46 +1,73 @@
-# Versión de la especificación OpenAPI
 openapi: 3.0.1
-
-# Información básica y de contacto de la API
 info:
   title: API de Autenticación - Crediya
   description: >
-    Microservicio para gestionar el registro, autenticación y autorización de 
+    Microservicio para gestionar el registro, autenticación y consulta de 
     usuarios en la plataforma Crediya.
   version: 1.0.0
   contact:
     name: Equipo de Desarrollo Crediya
     url: https://www.crediya.com/soporte
     email: dev-support@crediya.com
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-
-# Servidores donde la API estará disponible
 servers:
-  - url: http://localhost:8081/api/v1
+  - url: http://localhost:8081
     description: Servidor de desarrollo local
-  - url: https://api.dev.crediya.com/v1
+  - url: https://api.dev.crediya.com
     description: Servidor de entorno de desarrollo
-  - url: https://api.staging.crediya.com/v1
-    description: Servidor de entorno de pruebas (Staging)
-  - url: https://api.crediya.com/v1
-    description: Servidor de producción
-
-# Etiquetas para agrupar los endpoints
 tags:
+  - name: Autenticación
+    description: Operaciones relacionadas con el inicio de sesión de usuarios.
   - name: Gestión de Usuarios
-    description: Operaciones relacionadas con la creación y administración de usuarios.
-
-# Definición de las rutas (endpoints)
+    description: Operaciones relacionadas con la creación y consulta de usuarios.
 paths:
-  /users:
+  /api/v1/login:
+    post:
+      summary: "Iniciar sesión de usuario"
+      description: "Autentica a un usuario con su correo y contraseña, y devuelve un token JWT si las credenciales son correctas."
+      operationId: loginUser
+      tags:
+        - Autenticación
+      requestBody:
+        description: "Credenciales del usuario para iniciar sesión."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: "Autenticación exitosa."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: "Credenciales inválidas."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidCredentials:
+                  summary: "Credenciales incorrectas"
+                  value:
+                    status: 401
+                    code: "INVALID_CREDENTIALS"
+                    message: "Credenciales inválidas"
+                    path: "/api/v1/login"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/users:
     post:
       summary: "Registrar un nuevo usuario"
-      description: "Crea un nuevo usuario en el sistema. Esta operación requiere que el solicitante esté autenticado y tenga los permisos adecuados."
+      description: "Crea un nuevo usuario en el sistema. Requiere autenticación y rol de 'ROLE_ADMIN' o 'ROLE_ASESOR'."
       operationId: registerUser
       tags:
         - Gestión de Usuarios
+      security:
+        - BearerAuth: []
       requestBody:
         description: "Datos del usuario que se va a crear."
         required: true
@@ -48,61 +75,44 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/RegisterUserRequest'
-            examples:
-              # Ejemplo de una solicitud válida
-              usuarioValido:
-                summary: Ejemplo de registro de un usuario
-                value:
-                  firstName: "Carlos"
-                  lastName: "Santana"
-                  email: "carlos.santana@example.com"
-                  idNumber: "123456789"
-                  phone: 3101234567
-                  baseSalary: 2500000.0
-                  birthDate: "1990-05-15"
-                  address: "Calle Falsa 123, Ciudad"
-                  role: "ROLE_CLIENTE"
       responses:
-        '201': # 'Created'
+        '201':
           description: "Usuario registrado exitosamente."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
-        '400': # 'Bad Request'
-          description: "Solicitud inválida. Ocurre si los datos proporcionados no cumplen con las validaciones (ej. rol inválido, formato de datos incorrecto)."
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: "Conflicto. El correo electrónico o el número de documento ya existe."
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                rolInvalido:
-                  summary: "Rol no válido"
+                duplicateData:
+                  summary: "Datos duplicados"
                   value:
-                    timestamp: "2023-10-27T10:30:00Z"
-                    status: 400
-                    error: "Bad Request"
-                    message: "El rol especificado no es válido."
+                    status: 409
+                    code: "USER_ALREADY_EXISTS_409"
+                    message: "El correo electrónico o el número de documento ya están registrados."
                     path: "/api/v1/users"
-        '409': # 'Conflict'
-          description: "Conflicto. El correo electrónico o el número de documento proporcionado ya está en uso."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500': # 'Internal Server Error'
-          description: "Error interno del servidor. Ocurrió un error inesperado al procesar la solicitud."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/{idNumber}:
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/users/{idNumber}:
     get:
       summary: "Buscar un usuario por número de documento"
-      description: "Obtiene la información de un usuario a partir de su número de documento."
+      description: "Obtiene la información pública de un usuario a partir de su número de documento. Requiere autenticación."
       operationId: findUserByIdNumber
       tags:
         - Gestión de Usuarios
+      security:
+        - BearerAuth: []
       parameters:
         - name: idNumber
           in: path
@@ -110,26 +120,29 @@ paths:
           description: "Número de documento del usuario a buscar."
           schema:
             type: string
+            example: "123456789"
       responses:
         '200':
           description: "Usuario encontrado exitosamente."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
-          description: "Usuario no encontrado."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /users/email/{email}:
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/v1/users/email/{email}:
     get:
       summary: "Buscar un usuario por correo electrónico"
-      description: "Obtiene la información de un usuario a partir de su dirección de correo electrónico."
+      description: "Obtiene la información pública de un usuario a partir de su email. Requiere autenticación."
       operationId: findUserByEmail
       tags:
         - Gestión de Usuarios
+      security:
+        - BearerAuth: []
       parameters:
         - name: email
           in: path
@@ -138,31 +151,30 @@ paths:
           schema:
             type: string
             format: email
+            example: "carlos.santana@example.com"
       responses:
         '200':
           description: "Usuario encontrado exitosamente."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/ApiResponseUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
-          description: "Usuario no encontrado."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-# Componentes reutilizables
 components:
   schemas:
     RegisterUserRequest:
       type: object
-      title: "Esquema de solicitud de registro de usuario"
-      description: "Datos completos para registrar un nuevo usuario en el sistema."
       required:
         - firstName
         - lastName
         - email
+        - password
         - idNumber
         - phone
         - baseSalary
@@ -174,40 +186,34 @@ components:
           type: string
           description: "Nombres del usuario."
           example: "Carlos"
-          minLength: 2
-          maxLength: 50
-          pattern: "^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$"
         lastName:
           type: string
           description: "Apellidos del usuario."
           example: "Santana"
-          minLength: 2
-          maxLength: 50
-          pattern: "^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$"
         email:
           type: string
           format: email
           description: "Correo electrónico único del usuario."
           example: "carlos.santana@example.com"
-          maxLength: 100
+        password:
+          type: string
+          format: password
+          description: "Contraseña del usuario. Mínimo 8 caracteres."
+          example: "strongPassword123"
         idNumber:
           type: string
           description: "Número de identificación del usuario."
           example: "123456789"
-          minLength: 7
-          maxLength: 15
         phone:
           type: integer
           format: int64
-          description: "Número de teléfono de contacto."
+          description: "Número de teléfono de contacto (10 dígitos)."
           example: 3101234567
         baseSalary:
           type: number
           format: double
           description: "Salario base del usuario."
           example: 2500000.0
-          minimum: 0.0
-          maximum: 15000000.0
         birthDate:
           type: string
           format: date
@@ -217,8 +223,6 @@ components:
           type: string
           description: "Dirección de residencia del usuario."
           example: "Calle Falsa 123, Ciudad"
-          minLength: 10
-          maxLength: 200
         role:
           type: string
           description: "Rol asignado al usuario en el sistema."
@@ -227,59 +231,159 @@ components:
             - ROLE_ADMIN
             - ROLE_CLIENTE
             - ROLE_ASESOR
+    
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "carlos.santana@example.com"
+        password:
+          type: string
+          format: password
+          example: "strongPassword123"
 
     UserResponse:
       type: object
-      title: "Esquema de respuesta de usuario"
-      description: "Datos públicos del usuario una vez ha sido creado."
+      description: "Datos públicos del usuario."
       properties:
         firstName:
           type: string
-          description: "Nombres del usuario."
           example: "Carlos"
         lastName:
           type: string
-          description: "Apellidos del usuario."
           example: "Santana"
         email:
           type: string
           format: email
-          description: "Correo electrónico del usuario."
           example: "carlos.santana@example.com"
         idNumber:
           type: string
-          description: "Número de identificación del usuario."
           example: "123456789"
-        description:
-          type: string
-          description: "Descripción adicional o estado."
-          example: "Usuario creado correctamente."
 
-    ErrorResponse:
+    LoginResponse:
       type: object
-      title: "Esquema de respuesta de error"
-      description: "Estructura estándar para devolver información sobre errores."
+      properties:
+        token:
+          type: string
+          description: "Token JWT para autenticación."
+          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYXJsb3Muc2FudGFuYUBleGFtcGxlLmNvbSIsImV4cCI6MTY3OTg2NzU3MywiaWF0IjoxNjc5ODYzOTczfQ...."
+
+    ApiResponseUserResponse:
+      type: object
       properties:
         timestamp:
           type: string
           format: date-time
-          description: "Fecha y hora del error."
         status:
           type: integer
-          description: "Código de estado HTTP."
-        error:
+        code:
           type: string
-          description: "Nombre del error HTTP."
         message:
           type: string
-          description: "Mensaje descriptivo del error."
         path:
           type: string
-          description: "Ruta del endpoint invocado."
-        details:
+        data:
+          $ref: '#/components/schemas/UserResponse'
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        code:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        errors:
           type: object
-          description: "Mapa con detalles adicionales del error, especialmente para validaciones."
-          additionalProperties: true
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+  responses:
+    BadRequest:
+      description: "Solicitud inválida. Los datos no cumplen con las validaciones."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            validationError:
+              summary: "Error de validación"
+              value:
+                status: 400
+                code: "USER_VALIDATION_ERROR_400"
+                message: "La solicitud tiene errores de validación."
+                path: "/api/v1/users"
+                errors:
+                  email: ["El formato del correo electrónico no es válido."]
+    Unauthorized:
+      description: "No autorizado. Se requiere un token JWT válido."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              summary: "Token inválido o ausente"
+              value:
+                status: 401
+                code: "UNAUTHORIZED"
+                message: "Acceso no autorizado."
+                path: "/api/v1/users/123456789"
+    Forbidden:
+      description: "Acceso denegado. El usuario no tiene los permisos necesarios."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            forbidden:
+              summary: "Permisos insuficientes"
+              value:
+                status: 403
+                code: "FORBIDDEN"
+                message: "No tiene los permisos para realizar esta acción."
+                path: "/api/v1/users"
+    NotFound:
+      description: "Usuario no encontrado."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            userNotFound:
+              summary: "Usuario no existe"
+              value:
+                status: 404
+                code: "USER_NOT_FOUND_400"
+                message: "Usuario con idNumber 999888777 no encontrado."
+                path: "/api/v1/users/999888777"
+    InternalServerError:
+      description: "Error interno del servidor."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverError:
+              summary: "Error inesperado"
+              value:
+                status: 500
+                code: "INTERNAL_SERVER_ERROR_500"
+                message: "Ocurrió un error inesperado en el servidor."
+                path: "/api/v1/login"
 
   securitySchemes:
     BearerAuth:
@@ -287,6 +391,3 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: "Se requiere un token JWT en el encabezado 'Authorization': 'Bearer {token}'"
-
-security:
-  - BearerAuth: []

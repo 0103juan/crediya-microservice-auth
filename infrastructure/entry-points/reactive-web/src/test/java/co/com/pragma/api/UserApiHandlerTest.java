@@ -25,6 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,7 +84,7 @@ class UserApiHandlerTest {
         validRequest.setEmail("jane.doe@example.com");
         validRequest.setIdNumber("98765432");
         validRequest.setPhone(3219876543L);
-        validRequest.setBaseSalary(3000000.0);
+        validRequest.setBaseSalary(BigDecimal.valueOf(3000000.0));
         validRequest.setBirthDate(LocalDate.of(2000, 1, 1));
         validRequest.setAddress("Avenida Siempre Viva 742");
         validRequest.setRole("ROLE_CLIENTE");

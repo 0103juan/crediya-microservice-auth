@@ -2,6 +2,7 @@ package co.com.pragma.usecase.registeruser;
 
 import co.com.pragma.model.exceptions.DuplicateDataException;
 import co.com.pragma.model.user.User;
+import co.com.pragma.model.user.gateways.PasswordEncryptor;
 import co.com.pragma.model.user.gateways.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +25,9 @@ class RegisterUserUseCaseTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private PasswordEncryptor passwordEncryptor;
 
     @InjectMocks
     private RegisterUserUseCase registerUserUseCase;
@@ -35,9 +40,10 @@ class RegisterUserUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .email("john.doe@example.com")
+                .password("rawPassword123")
                 .idNumber("123456789")
                 .phone(3001234567L)
-                .baseSalary(5000000.0)
+                .baseSalary(BigDecimal.valueOf(5000000))
                 .birthDate(LocalDate.of(1990, 1, 1))
                 .address("123 Main St")
                 .build();
@@ -47,6 +53,7 @@ class RegisterUserUseCaseTest {
     @DisplayName("Prueba de registro exitoso de un nuevo usuario")
     void saveUser_whenUserDoesNotExist_shouldSaveUser() {
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(false));
+        when(passwordEncryptor.encode(testUser.getPassword())).thenReturn("encodedPassword");
         when(userRepository.saveUser(any(User.class))).thenReturn(Mono.just(testUser));
         Mono<User> result = registerUserUseCase.saveUser(testUser);
         StepVerifier.create(result)
@@ -57,6 +64,7 @@ class RegisterUserUseCaseTest {
     @Test
     @DisplayName("Prueba de error al registrar un usuario con un email o idNumber existente")
     void saveUser_whenUserAlreadyExists_shouldReturnError() {
+        when(passwordEncryptor.encode(testUser.getPassword())).thenReturn("encodedPassword");
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(true));
         Mono<User> result = registerUserUseCase.saveUser(testUser);
         StepVerifier.create(result)

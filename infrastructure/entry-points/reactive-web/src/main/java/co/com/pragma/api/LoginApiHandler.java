@@ -13,6 +13,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -24,15 +26,21 @@ public class LoginApiHandler {
     public Mono<ServerResponse> login(ServerRequest serverRequest) {
         log.info("Recibida petición de login");
         return serverRequest.bodyToMono(LoginRequest.class)
-                .flatMap(loginRequest -> loginUseCase.login(loginRequest.getEmail(), loginRequest.getPassword()))
-                .flatMap(user -> {
-                    String token = jwtProvider.generateToken(user);
-                    return ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(new LoginResponse(token));
-                })
-                .switchIfEmpty(Mono.error(new InvalidCredentialsException("Credenciales inválidas")))
-                .doOnSuccess(response -> log.info("Login exitoso"))
-                .doOnError(error -> log.error("Error en el login: {}", error.getMessage()));
+                .flatMap(request -> loginUseCase.login(request.getEmail(), request.getPassword())
+                        .flatMap(userDomain -> {
+                            String token = jwtProvider.generateToken(userDomain);
+                            return ServerResponse.ok()
+                                    .contentType(APPLICATION_JSON)
+                                    .bodyValue(new LoginResponse(token));
+                        })
+                        .onErrorResume(InvalidCredentialsException.class, error -> {
+                            log.error("Error en el login: {}", error.getMessage());
+                            return ServerResponse.status(401).build();
+                        })
+                        .onErrorResume(Exception.class, error -> {
+                            log.error("Error inesperado en el login: ", error);
+                            return ServerResponse.status(500).build();
+                        })
+                );
     }
 }

@@ -79,6 +79,18 @@ subprojects {
             csv.setRequired false
             html.setOutputLocation layout.buildDirectory.dir("reports/jacocoHtml")
         }
+
+        // --- AÑADE ESTE BLOQUE ---
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    'co/com/pragma/api/config/SecurityConfig.class',
+                    'co/com/pragma/api/config/SecurityHeadersConfig.class',
+                    'co/com/pragma/api/security/**',
+                    '**/*DTO.class',
+                    '**/*MapperImpl.class'
+            ])
+        }))
+        // -------------------------
     }
 
 }
@@ -97,22 +109,28 @@ tasks.register('jacocoMergedReport', JacocoReport) {
         html.setRequired true
     }
 
-    group 'Domain'
+    group = 'Domain' // Corregido
     sourceSets(subprojects.findAll { it.name in ['model', 'usecase'] }.sourceSets.main as SourceSet[])
 
-    group 'Application'
+    group = 'Application' // Corregido
     sourceSets(subprojects.findAll { it.name == 'app-service' }.sourceSets.main as SourceSet[])
 
-    group 'Infrastructure/Entry Points'
+    group = 'Infrastructure/Entry Points' // Corregido
     sourceSets(subprojects.findAll { it.name == 'reactive-web' }.sourceSets.main as SourceSet[])
 
-    group 'Infrastructure/Driven Adapters'
+    group = 'Infrastructure/Driven Adapters' // Corregido
     sourceSets(subprojects.findAll { it.name in ['r2dbc-postgresql', 'web-client'] }.sourceSets.main as SourceSet[])
 
-    group 'Infrastructure/Helpers'
+    group = 'Infrastructure/Helpers' // Corregido
     sourceSets(subprojects.findAll { it.name == 'request-validator' }.sourceSets.main as SourceSet[])
 
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: [
+                '**/co/com/pragma/api/security/**'
+        ])
+    }))
 }
 
 tasks.withType(JavaCompile).configureEach {

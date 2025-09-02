@@ -1,5 +1,6 @@
 package co.com.pragma.config;
 
+import co.com.pragma.model.user.gateways.PasswordEncryptor;
 import co.com.pragma.model.user.gateways.UserRepository;
 import co.com.pragma.usecase.finduser.FindUserUseCase;
 import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
@@ -21,6 +22,10 @@ class UseCasesConfigTest {
         @Bean
         public UserRepository userRepository() {
             return mock(UserRepository.class);
+        }
+        @Bean
+        public PasswordEncryptor passwordEncryptor() {
+            return mock(PasswordEncryptor.class);
         }
     }
 

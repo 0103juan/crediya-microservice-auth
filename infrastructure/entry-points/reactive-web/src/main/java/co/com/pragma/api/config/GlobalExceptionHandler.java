@@ -2,10 +2,7 @@ package co.com.pragma.api.config;
 
 import co.com.pragma.api.response.ApiResponse;
 import co.com.pragma.api.response.CustomStatus;
-import co.com.pragma.model.exceptions.DuplicateDataException;
-import co.com.pragma.model.exceptions.InvalidRoleException;
-import co.com.pragma.model.exceptions.UserNotFoundException;
-import co.com.pragma.model.exceptions.UserValidationException;
+import co.com.pragma.model.exceptions.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
@@ -54,6 +51,8 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         } else if (error instanceof UserValidationException e) {
             customStatus = CustomStatus.USER_VALIDATION_ERROR;
             errors = e.getErrors();
+        } else if (error instanceof InvalidCredentialsException) { // <-- 2. Añadir este bloque
+            customStatus = CustomStatus.INVALID_CREDENTIALS;
         }
 
         log.error("Error manejado: {} - Status: {} - Path: {}", customStatus.getMessage(), customStatus.getHttpStatus(), request.path(), error);
