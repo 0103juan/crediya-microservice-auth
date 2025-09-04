@@ -62,7 +62,6 @@ class GlobalExceptionHandlerTest {
                 .expectStatus().isEqualTo(expectedCustomStatus.getHttpStatus())
                 .expectBody(new ParameterizedTypeReference<ApiResponse<Object>>() {})
                 .value(apiResponse -> {
-                    assertEquals(expectedCustomStatus.getHttpStatus().value(), apiResponse.getStatus());
                     assertEquals(expectedCustomStatus.getCode(), apiResponse.getCode());
                     assertNotNull(apiResponse.getMessage());
                 });
@@ -101,7 +100,6 @@ class GlobalExceptionHandlerTest {
                 .expectStatus().isBadRequest()
                 .expectBody(new ParameterizedTypeReference<ApiResponse<Object>>() {})
                 .value(apiResponse -> {
-                    assertEquals(expectedStatus.getHttpStatus().value(), apiResponse.getStatus());
                     assertEquals(expectedStatus.getCode(), apiResponse.getCode());
                     assertEquals("Error de validación.", apiResponse.getMessage());
                     assertNotNull(apiResponse.getErrors());

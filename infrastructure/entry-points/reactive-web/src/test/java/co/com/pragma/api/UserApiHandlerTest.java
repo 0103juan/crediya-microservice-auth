@@ -105,7 +105,6 @@ class UserApiHandlerTest {
                 .expectStatus().isCreated()
                 .expectBody(new ParameterizedTypeReference<ApiResponse<UserResponse>>() {})
                 .value(apiResponse -> {
-                    assertThat(apiResponse.getStatus()).isEqualTo(expectedStatus.getHttpStatus().value());
                     assertThat(apiResponse.getCode()).isEqualTo(expectedStatus.getCode());
                     assertThat(apiResponse.getData()).isNotNull();
                     assertThat(apiResponse.getData().getEmail()).isEqualTo("jane.doe@example.com");
@@ -123,7 +122,6 @@ class UserApiHandlerTest {
                 .expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<ApiResponse<UserResponse>>() {})
                 .value(apiResponse -> {
-                    assertThat(apiResponse.getStatus()).isEqualTo(expectedStatus.getHttpStatus().value());
                     assertThat(apiResponse.getCode()).isEqualTo(expectedStatus.getCode());
                     assertThat(apiResponse.getData()).isNotNull();
                     assertThat(apiResponse.getData().getIdNumber()).isEqualTo("98765432");
@@ -141,7 +139,6 @@ class UserApiHandlerTest {
                 .expectStatus().isOk()
                 .expectBody(new ParameterizedTypeReference<ApiResponse<UserResponse>>() {})
                 .value(apiResponse -> {
-                    assertThat(apiResponse.getStatus()).isEqualTo(expectedStatus.getHttpStatus().value());
                     assertThat(apiResponse.getCode()).isEqualTo(expectedStatus.getCode());
                     assertThat(apiResponse.getData()).isNotNull();
                     assertThat(apiResponse.getData().getEmail()).isEqualTo("jane.doe@example.com");

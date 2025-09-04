@@ -19,10 +19,10 @@ import java.util.Map;
 public class JwtProvider {
 
     @Value("${jwt.secret}")
-    private final String secret;
+    private String secret;
 
     @Value("${jwt.expiration}")
-    private final Long expiration;
+    private Long expiration;
 
     private Key getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());

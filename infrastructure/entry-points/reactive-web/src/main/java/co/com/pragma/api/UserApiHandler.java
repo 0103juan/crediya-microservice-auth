@@ -44,7 +44,6 @@ public class UserApiHandler {
                     CustomStatus status = CustomStatus.USER_CREATED_SUCCESSFULLY;
 
                     ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
-                            .status(status.getHttpStatus().value())
                             .code(status.getCode())
                             .message(status.getMessage())
                             .path(location.toString())
@@ -67,7 +66,6 @@ public class UserApiHandler {
                     CustomStatus status = CustomStatus.USER_FOUND_SUCCESSFULLY;
 
                     ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
-                            .status(status.getHttpStatus().value())
                             .code(status.getCode())
                             .message(status.getMessage())
                             .path(serverRequest.path())
@@ -91,7 +89,6 @@ public class UserApiHandler {
                     CustomStatus status = CustomStatus.USER_FOUND_SUCCESSFULLY;
 
                     ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
-                            .status(status.getHttpStatus().value())
                             .code(status.getCode())
                             .message(status.getMessage())
                             .path(serverRequest.path())

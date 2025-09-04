@@ -8,6 +8,9 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum CustomStatus {
 
+    // AÑADIDO: Nuevo estado para login exitoso
+    LOGIN_SUCCESSFUL(HttpStatus.OK, "LOGIN_SUCCESSFUL_200", "Autenticación exitosa."),
+
     USER_CREATED_SUCCESSFULLY(HttpStatus.CREATED, "USER_CREATED_201", "Usuario creado exitosamente."),
     USER_FOUND_SUCCESSFULLY(HttpStatus.OK, "USER_FOUND_200", "Usuario encontrado exitosamente."),
 

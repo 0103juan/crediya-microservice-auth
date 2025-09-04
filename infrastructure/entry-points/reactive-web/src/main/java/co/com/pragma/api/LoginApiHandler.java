@@ -1,13 +1,13 @@
 package co.com.pragma.api;
 
 import co.com.pragma.api.request.LoginRequest;
+import co.com.pragma.api.response.ApiResponse;
+import co.com.pragma.api.response.CustomStatus;
 import co.com.pragma.api.response.LoginResponse;
 import co.com.pragma.api.security.JwtProvider;
-import co.com.pragma.model.exceptions.InvalidCredentialsException;
 import co.com.pragma.usecase.login.LoginUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -28,18 +28,23 @@ public class LoginApiHandler {
         return serverRequest.bodyToMono(LoginRequest.class)
                 .flatMap(request -> loginUseCase.login(request.getEmail(), request.getPassword())
                         .flatMap(userDomain -> {
+                            // 1. Generar el token y el DTO de respuesta
                             String token = jwtProvider.generateToken(userDomain);
+                            LoginResponse loginResponse = new LoginResponse(token);
+                            CustomStatus status = CustomStatus.LOGIN_SUCCESSFUL;
+
+                            // 2. Construir el ApiResponse
+                            ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
+                                    .code(status.getCode())
+                                    .message(status.getMessage())
+                                    .path(serverRequest.path())
+                                    .data(loginResponse)
+                                    .build();
+
+                            // 3. Devolver el ApiResponse en el cuerpo
                             return ServerResponse.ok()
                                     .contentType(APPLICATION_JSON)
-                                    .bodyValue(new LoginResponse(token));
-                        })
-                        .onErrorResume(InvalidCredentialsException.class, error -> {
-                            log.error("Error en el login: {}", error.getMessage());
-                            return ServerResponse.status(401).build();
-                        })
-                        .onErrorResume(Exception.class, error -> {
-                            log.error("Error inesperado en el login: ", error);
-                            return ServerResponse.status(500).build();
+                                    .bodyValue(apiResponse);
                         })
                 );
     }
