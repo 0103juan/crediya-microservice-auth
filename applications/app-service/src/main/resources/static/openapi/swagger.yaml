@@ -40,7 +40,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                $ref: '#/components/schemas/ApiResponseLoginResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -54,7 +54,7 @@ paths:
                   summary: "Credenciales incorrectas"
                   value:
                     status: 401
-                    code: "INVALID_CREDENTIALS"
+                    code: "INVALID_CREDENTIALS_401"
                     message: "Credenciales inválidas"
                     path: "/api/v1/login"
         '500':
@@ -184,25 +184,25 @@ components:
       properties:
         firstName:
           type: string
-          description: "Nombres del usuario."
+          description: "Nombres del usuario. Debe tener entre 2 y 50 caracteres (solo letras y espacios)."
           example: "Carlos"
         lastName:
           type: string
-          description: "Apellidos del usuario."
+          description: "Apellidos del usuario. Debe tener entre 2 y 50 caracteres (solo letras y espacios)."
           example: "Santana"
         email:
           type: string
           format: email
-          description: "Correo electrónico único del usuario."
+          description: "Correo electrónico único del usuario. Máximo 100 caracteres."
           example: "carlos.santana@example.com"
         password:
           type: string
           format: password
-          description: "Contraseña del usuario. Mínimo 8 caracteres."
+          description: "Contraseña del usuario. Debe tener entre 8 y 100 caracteres."
           example: "strongPassword123"
         idNumber:
           type: string
-          description: "Número de identificación del usuario."
+          description: "Número de identificación del usuario. Debe tener entre 7 y 15 dígitos."
           example: "123456789"
         phone:
           type: integer
@@ -212,16 +212,16 @@ components:
         baseSalary:
           type: number
           format: double
-          description: "Salario base del usuario."
+          description: "Salario base del usuario. No puede ser negativo y no debe exceder 15,000,000."
           example: 2500000.0
         birthDate:
           type: string
           format: date
-          description: "Fecha de nacimiento del usuario."
+          description: "Fecha de nacimiento del usuario. Debe ser una fecha en el pasado."
           example: "1990-05-15"
         address:
           type: string
-          description: "Dirección de residencia del usuario."
+          description: "Dirección de residencia del usuario. Debe tener entre 10 y 200 caracteres."
           example: "Calle Falsa 123, Ciudad"
         role:
           type: string
@@ -231,7 +231,7 @@ components:
             - ROLE_ADMIN
             - ROLE_CLIENTE
             - ROLE_ASESOR
-    
+
     LoginRequest:
       type: object
       required:
@@ -279,8 +279,6 @@ components:
         timestamp:
           type: string
           format: date-time
-        status:
-          type: integer
         code:
           type: string
         message:
@@ -289,6 +287,21 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/UserResponse'
+
+    ApiResponseLoginResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        code:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        data:
+          $ref: '#/components/schemas/LoginResponse'
 
     ErrorResponse:
       type: object
@@ -367,7 +380,7 @@ components:
               summary: "Usuario no existe"
               value:
                 status: 404
-                code: "USER_NOT_FOUND_400"
+                code: "USER_NOT_FOUND_404"
                 message: "Usuario con idNumber 999888777 no encontrado."
                 path: "/api/v1/users/999888777"
     InternalServerError:

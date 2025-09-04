@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = {
         LoginApiRouter.class,
         LoginApiHandler.class,
-        GlobalExceptionHandler.class, 
+        GlobalExceptionHandler.class,
         LoginApiHandlerTest.TestConfig.class,
         LoginApiHandlerTest.TestSecurityConfig.class
 })
