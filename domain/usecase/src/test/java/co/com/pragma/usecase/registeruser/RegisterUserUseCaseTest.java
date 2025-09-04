@@ -54,8 +54,8 @@ class RegisterUserUseCaseTest {
     void saveUser_whenUserDoesNotExist_shouldSaveUser() {
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(false));
         when(passwordEncryptor.encode(testUser.getPassword())).thenReturn("encodedPassword");
-        when(userRepository.saveUser(any(User.class))).thenReturn(Mono.just(testUser));
-        Mono<User> result = registerUserUseCase.saveUser(testUser);
+        when(userRepository.save(any(User.class))).thenReturn(Mono.just(testUser));
+        Mono<User> result = registerUserUseCase.save(testUser);
         StepVerifier.create(result)
                 .expectNextMatches(savedUser -> savedUser.getEmail().equals("john.doe@example.com"))
                 .verifyComplete();
@@ -66,7 +66,7 @@ class RegisterUserUseCaseTest {
     void saveUser_whenUserAlreadyExists_shouldReturnError() {
         when(passwordEncryptor.encode(testUser.getPassword())).thenReturn("encodedPassword");
         when(userRepository.existsByEmailOrIdNumber(testUser.getEmail(), testUser.getIdNumber())).thenReturn(Mono.just(true));
-        Mono<User> result = registerUserUseCase.saveUser(testUser);
+        Mono<User> result = registerUserUseCase.save(testUser);
         StepVerifier.create(result)
                 .expectError(DuplicateDataException.class)
                 .verify();

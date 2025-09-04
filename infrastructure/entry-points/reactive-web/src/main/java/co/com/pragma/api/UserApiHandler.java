@@ -36,7 +36,7 @@ public class UserApiHandler {
                 .flatMap(user -> {
                     log.info("Petición válida, invocando caso de uso RegisterUserUseCase.");
                     User userDomain = userMapper.toModel(user);
-                    return registerUserUseCase.saveUser(userDomain);
+                    return registerUserUseCase.save(userDomain);
                 })
                 .flatMap(savedUser -> {
                     UserResponse userResponse = userMapper.toResponse(savedUser);

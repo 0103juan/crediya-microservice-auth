@@ -13,12 +13,12 @@ public class RegisterUserUseCase {
     private final UserRepository userRepository;
     private final PasswordEncryptor passwordEncryptor;
 
-    public Mono<User> saveUser(User userToSave) {
+    public Mono<User> save(User userToSave) {
         userToSave.setPassword(passwordEncryptor.encode(userToSave.getPassword()));
 
         return userRepository.existsByEmailOrIdNumber(userToSave.getEmail(), userToSave.getIdNumber())
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new DuplicateDataException("El correo electrónico o el número de documento ya están registrados.")))
-                .flatMap(result -> userRepository.saveUser(userToSave));
+                .flatMap(result -> userRepository.save(userToSave));
     }
 }

@@ -26,7 +26,7 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
-    public Mono<User> saveUser(User user) {
+    public Mono<User> save(User user) {
         log.info("Iniciando operación de guardado para el usuario con email: {}", user.getEmail());
 
         return super.save(user)

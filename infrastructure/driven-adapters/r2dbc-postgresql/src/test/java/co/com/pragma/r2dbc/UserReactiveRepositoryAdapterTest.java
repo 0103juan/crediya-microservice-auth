@@ -58,7 +58,7 @@ class UserReactiveRepositoryAdapterTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         
-        Mono<User> result = adapter.saveUser(userDomain);
+        Mono<User> result = adapter.save(userDomain);
 
         
         StepVerifier.create(result)

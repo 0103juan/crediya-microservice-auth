@@ -94,7 +94,7 @@ class UserApiHandlerTest {
     @Test
     void registerUser_whenRequestIsValid_shouldReturnCreated() {
         when(requestValidator.validate(any(RegisterUserRequest.class))).thenReturn(Mono.just(validRequest));
-        when(registerUserUseCase.saveUser(any(User.class))).thenReturn(Mono.just(userDomain));
+        when(registerUserUseCase.save(any(User.class))).thenReturn(Mono.just(userDomain));
         CustomStatus expectedStatus = CustomStatus.USER_CREATED_SUCCESSFULLY;
 
         webTestClient.post()

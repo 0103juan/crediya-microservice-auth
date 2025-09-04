@@ -1,5 +1,6 @@
 package co.com.pragma.api;
 
+import co.com.pragma.api.config.GlobalExceptionHandler;
 import co.com.pragma.api.request.LoginRequest;
 import co.com.pragma.api.response.ApiResponse;
 import co.com.pragma.api.response.CustomStatus;
@@ -29,7 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = {LoginApiRouter.class, LoginApiHandler.class, LoginApiHandlerTest.TestConfig.class, LoginApiHandlerTest.TestSecurityConfig.class})
+@ContextConfiguration(classes = {
+        LoginApiRouter.class,
+        LoginApiHandler.class,
+        GlobalExceptionHandler.class, 
+        LoginApiHandlerTest.TestConfig.class,
+        LoginApiHandlerTest.TestSecurityConfig.class
+})
 @WebFluxTest
 @TestPropertySource(properties = {"jwt.secret=test-secret-key-for-testing-purposes-123456", "jwt.expiration=3600"})
 class LoginApiHandlerTest {
