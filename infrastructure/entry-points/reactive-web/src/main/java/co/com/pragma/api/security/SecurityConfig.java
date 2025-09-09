@@ -1,7 +1,5 @@
-package co.com.pragma.api.config;
+package co.com.pragma.api.security;
 
-import co.com.pragma.api.security.AuthenticationManager;
-import co.com.pragma.api.security.SecurityContextRepository;
 import lombok.Generated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
