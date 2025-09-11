@@ -46,6 +46,7 @@ routes:
     users: "/api/v1/users"
     usersByEmail: "/api/v1/users/email/{email}"
     usersById: "/api/v1/users/{idNumber}"
+    usersByEmails: "/api/v1/users/emails"
 
 # --- Configuración Reactiva para PostgreSQL con R2DBC ---
 adapters:
