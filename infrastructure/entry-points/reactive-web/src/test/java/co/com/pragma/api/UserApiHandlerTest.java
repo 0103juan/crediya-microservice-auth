@@ -1,3 +1,5 @@
+// infrastructure/entry-points/reactive-web/src/test/java/co/com/pragma/api/UserApiHandlerTest.java
+
 package co.com.pragma.api;
 
 import co.com.pragma.api.config.UserPath;
@@ -60,6 +62,7 @@ class UserApiHandlerTest {
             userPath.setUsers("/api/v1/users");
             userPath.setUsersById("/api/v1/users/{idNumber}");
             userPath.setUsersByEmail("/api/v1/users/email/{email}");
+            userPath.setUsersByEmails("/api/v1/users/emails");
             return userPath;
         }
     }
