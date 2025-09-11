@@ -21,6 +21,7 @@ public class UserApiRouter {
     public RouterFunction<ServerResponse> routerFunction() {
         return route(POST(userPath.getUsers()), userApiHandler::listenRegister)
                 .andRoute(GET(userPath.getUsersById()), userApiHandler::listenFindByIdNumber)
-                .andRoute(GET(userPath.getUsersByEmail()), userApiHandler::listenFindByEmail);
+                .andRoute(GET(userPath.getUsersByEmail()), userApiHandler::listenFindByEmail)
+                .andRoute(POST(userPath.getUsersByEmails()), userApiHandler::listenFindAllByEmails);
     }
 }

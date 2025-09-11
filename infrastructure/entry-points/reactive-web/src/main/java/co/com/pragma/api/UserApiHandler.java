@@ -12,6 +12,7 @@ import co.com.pragma.usecase.finduser.FindUserUseCase;
 import co.com.pragma.usecase.registeruser.RegisterUserUseCase;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -19,6 +20,8 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 @Log4j2
 @AllArgsConstructor
@@ -100,5 +103,35 @@ public class UserApiHandler {
                             .bodyValue(apiResponse);
                 })
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con email " + email + " no encontrado.")));
+    }
+
+    public Mono<ServerResponse> listenFindAllByEmails(ServerRequest serverRequest) {
+        log.info("Recibida petición de consulta masiva por emails.");
+
+        return serverRequest.bodyToMono(new ParameterizedTypeReference<Map<String, List<String>>>() {})
+                .map(body -> body.getOrDefault("emails", List.of()))
+                .flatMap(emails -> {
+                    if (emails.isEmpty()) {
+                        return ServerResponse.ok()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(List.of());
+                    }
+
+                    return findUserUseCase.findAllByEmails(emails)
+                            .map(userMapper::toResponse)
+                            .collectList()
+                            .flatMap(userResponses -> {
+                                ApiResponse<List<UserResponse>> apiResponse = ApiResponse.<List<UserResponse>>builder()
+                                        .code(CustomStatus.USER_FOUND_SUCCESSFULLY.getCode())
+                                        .message(CustomStatus.USER_FOUND_SUCCESSFULLY.getMessage())
+                                        .path(serverRequest.path())
+                                        .data(userResponses)
+                                        .build();
+
+                                return ServerResponse.ok()
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(apiResponse);
+                            });
+                });
     }
 }
