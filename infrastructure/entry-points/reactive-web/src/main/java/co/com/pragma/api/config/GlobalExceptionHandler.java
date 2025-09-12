@@ -51,7 +51,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         } else if (error instanceof UserValidationException e) {
             customStatus = CustomStatus.USER_VALIDATION_ERROR;
             errors = e.getErrors();
-        } else if (error instanceof InvalidCredentialsException) { // <-- 2. Añadir este bloque
+        } else if (error instanceof InvalidCredentialsException) {
             customStatus = CustomStatus.INVALID_CREDENTIALS;
         }
 

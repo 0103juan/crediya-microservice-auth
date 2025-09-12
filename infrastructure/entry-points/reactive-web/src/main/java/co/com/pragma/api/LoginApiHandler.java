@@ -28,12 +28,9 @@ public class LoginApiHandler {
         return serverRequest.bodyToMono(LoginRequest.class)
                 .flatMap(request -> loginUseCase.login(request.getEmail(), request.getPassword())
                         .flatMap(userDomain -> {
-                            // 1. Generar el token y el DTO de respuesta
                             String token = jwtProvider.generateToken(userDomain);
                             LoginResponse loginResponse = new LoginResponse(token);
                             CustomStatus status = CustomStatus.LOGIN_SUCCESSFUL;
-
-                            // 2. Construir el ApiResponse
                             ApiResponse<LoginResponse> apiResponse = ApiResponse.<LoginResponse>builder()
                                     .code(status.getCode())
                                     .message(status.getMessage())
@@ -41,7 +38,6 @@ public class LoginApiHandler {
                                     .data(loginResponse)
                                     .build();
 
-                            // 3. Devolver el ApiResponse en el cuerpo
                             return ServerResponse.ok()
                                     .contentType(APPLICATION_JSON)
                                     .bodyValue(apiResponse);

@@ -35,7 +35,7 @@ public class SecurityConfig {
                                 "/swagger-ui.html", "/swagger-ui/**",
                                 "/v3/api-docs/**", "/webjars/**", "/openapi/**"
                         ).permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/users").hasAnyAuthority("ROLE_ADMIN", "ROLE_ASESOR")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/users").hasAnyAuthority("ROLE_ADMIN", "ROLE_ASESOR") //Pasar roles a Enum
                         .pathMatchers(HttpMethod.GET, "/api/v1/users/**").authenticated()
                         .anyExchange().authenticated()
                 )
