@@ -1,7 +1,8 @@
 INSERT INTO roles (id, name, description) VALUES
 (1, 'ROLE_ADMIN', 'Administrador del sistema'),
 (2, 'ROLE_CLIENTE', 'Cliente de la aplicación'),
-(3, 'ROLE_ASESOR', 'Asesor de crédito');
+(3, 'ROLE_ASESOR', 'Asesor de crédito')
+ON CONFLICT (id) DO NOTHING;
 
 
 -- Inserta el usuario administrador con contraseña encriptada
@@ -11,11 +12,11 @@ VALUES (
     'Admin',
     'Crediya',
     'admin@crediya.com',
-    '$2a$10$2.G.9u.R.R.B.h.r.Z.Y.e.U.L.s.o.X.U.X.I.A.D.C.W.E.N.G.U.E', -- Corresponde a 'admin123'
+    '$2a$12$pLu9zSUlgBwWWEw4HFdeS.lCfOFIK7ayowp22NgMpXx9BPZiDrkGG',
     '00000000',
-    3001234567,
+    '3001234567',
     5000000.00,
     '1990-01-01',
     'Oficina Principal',
-    1 -- ID para ROLE_ADMIN según tu enumeración
+    1
 ) ON CONFLICT (email) DO NOTHING;
