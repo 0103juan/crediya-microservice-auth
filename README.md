@@ -1,47 +1,76 @@
-# Proyecto Base Implementando Clean Architecture
+# crediya-microservice-auth
 
-## Antes de Iniciar
+[![CI](https://github.com/0103juan/crediya-microservice-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/0103juan/crediya-microservice-auth/actions/workflows/ci.yml)
 
-Empezaremos por explicar los diferentes componentes del proyectos y partiremos de los componentes externos, continuando con los componentes core de negocio (dominio) y por último el inicio y configuración de la aplicación.
+Users, roles and login for **CrediYa**, a fictional lender. It is one of two reactive microservices; the other is [crediya-microservice-loan](https://github.com/0103juan/crediya-microservice-loan), which asks this one who a user is.
 
-Lee el artículo [Clean Architecture — Aislando los detalles](https://medium.com/bancolombia-tech/clean-architecture-aislando-los-detalles-4f9530f35d7a)
+Java 21, Spring Boot 3.5 with WebFlux, R2DBC on PostgreSQL, JWT, and a clean architecture laid out with Bancolombia's open-source [scaffold plugin](https://github.com/bancolombia/scaffold-clean-architecture). The API messages are in Spanish; this README is in English.
 
-# Arquitectura
+## What it does
 
-![Clean Architecture](https://miro.medium.com/max/1400/1*ZdlHz8B0-qu9Y-QO3AXR_w.png)
+| Endpoint | Who can call it | What it does |
+|---|---|---|
+| `POST /api/v1/login` | anyone | Checks the password and returns a JWT |
+| `POST /api/v1/users` | `ROLE_ADMIN`, `ROLE_ASESOR` | Registers a user with a role |
+| `GET /api/v1/users/{idNumber}` | any signed-in user | Finds a user by document number |
+| `GET /api/v1/users/email/{email}` | any signed-in user | Finds a user by email |
+| `POST /api/v1/users/emails` | any signed-in user | Finds several users in one call, so the loan service does not ask once per row |
 
-## Domain
+- Passwords are stored as BCrypt hashes.
+- The token is signed with HS256, carries the user's role and expires after an hour. The secret comes from the `SECRET_JWT_TOKEN` environment variable and is not in the repository.
+- A request body is validated before it reaches a use case; the answer lists every field that failed and why.
+- An email or a document number that already exists is a `409`, not a database error.
+- The contract is in `applications/app-service/src/main/resources/static/openapi/swagger.yaml`, served at `/swagger-ui.html`.
 
-Es el módulo más interno de la arquitectura, pertenece a la capa del dominio y encapsula la lógica y reglas del negocio mediante modelos y entidades del dominio.
+## How it is built
 
-## Usecases
+```
+domain/model          User, Role, the exceptions and the gateway interfaces. No framework imports.
+domain/usecase        RegisterUser, Login, FindUser: plain classes over the gateways.
+infrastructure/
+  driven-adapters/r2dbc-postgresql   the UserRepository gateway on R2DBC
+  entry-points/reactive-web          router functions, handlers, JWT filter, error handler
+  helpers/request-validator          Jakarta validation as a reactive step
+applications/app-service             wiring and configuration
+```
 
-Este módulo gradle perteneciente a la capa del dominio, implementa los casos de uso del sistema, define lógica de aplicación y reacciona a las invocaciones desde el módulo de entry points, orquestando los flujos hacia el módulo de entities.
+Dependencies point inwards: a use case knows `UserRepository` and `PasswordEncryptor` as interfaces, and the adapters implement them. `ArchitectureTest` enforces part of that with ArchUnit: domain classes may not be named after tools or technologies, and use cases and beans may only have final fields.
 
-## Infrastructure
+Everything is non-blocking, from the router function to the database driver.
 
-### Helpers
+## Tests
 
-En el apartado de helpers tendremos utilidades generales para los Driven Adapters y Entry Points.
+```bash
+./gradlew test
+```
 
-Estas utilidades no están arraigadas a objetos concretos, se realiza el uso de generics para modelar comportamientos
-genéricos de los diferentes objetos de persistencia que puedan existir, este tipo de implementaciones se realizan
-basadas en el patrón de diseño [Unit of Work y Repository](https://medium.com/@krzychukosobudzki/repository-design-pattern-bc490b256006)
+51 tests in 17 classes: use cases with `StepVerifier` and mocked gateways, handlers through `WebTestClient`, the repository adapter, the mapper, the error handler and the architecture rules. The same command runs **PIT mutation testing** and writes JaCoCo coverage, so the build also reports how many deliberately broken versions of the code the tests catch. CI runs it on every push.
 
-Estas clases no puede existir solas y debe heredarse su compartimiento en los **Driven Adapters**
+## Run it
 
-### Driven Adapters
+It needs Java 21 and a PostgreSQL database called `auth`.
 
-Los driven adapter representan implementaciones externas a nuestro sistema, como lo son conexiones a servicios rest,
-soap, bases de datos, lectura de archivos planos, y en concreto cualquier origen y fuente de datos con la que debamos
-interactuar.
+```bash
+docker run -d --name crediya-pg -e POSTGRES_PASSWORD=admin -p 5432:5432 postgres:16
+docker exec crediya-pg psql -U postgres -c "CREATE DATABASE auth"
 
-### Entry Points
+export SECRET_JWT_TOKEN="any-string-of-at-least-32-characters-here"
+export APP_DB_INIT_ENABLED=true      # creates the tables and the seed data on start
+./gradlew bootRun                    # http://localhost:8081
 
-Los entry points representan los puntos de entrada de la aplicación o el inicio de los flujos de negocio.
+curl -X POST localhost:8081/api/v1/login -H "Content-Type: application/json" \
+     -d '{"email":"admin@crediya.com","password":"admin123"}'
+```
 
-## Application
+The database address can be changed with `ADAPTERS_R2DBC_HOST`, `ADAPTERS_R2DBC_PORT`, `ADAPTERS_R2DBC_USERNAME` and `ADAPTERS_R2DBC_PASSWORD`.
 
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
+I checked this by hand on 1 October 2026, together with the loan service: the seeded administrator signs in and registers an adviser and a client (`201`), a repeated email is a `409`, an invalid body is a `400` with the reasons per field, a client who tries to register a user gets a `403`, and a request without a token gets a `401`.
 
-**Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+## Limits
+
+- A practice project: the lender is fictional and it has never run in production.
+- The seed data creates an administrator with a known password. That is for a local database only.
+- There are no integration tests against a real PostgreSQL in the build; the adapter tests mock the repository. The check against a real database was done by hand, as described above.
+- One symmetric secret signs and verifies the tokens, and the loan service needs the same secret. There is no key rotation, no refresh token and no logout.
+- Any signed-in user can look up any other user. That is what the loan service needs, and more than a client should have.
+- The work was done in branches named after user stories (`HU1`, `HU3`, `HU5`); `main` has all of it.
