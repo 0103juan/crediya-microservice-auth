@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/0103juan/crediya-microservice-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/0103juan/crediya-microservice-auth/actions/workflows/ci.yml)
 
-Users, roles and login for **CrediYa**, a fictional lender. It is one of two reactive microservices; the other is [crediya-microservice-loan](https://github.com/0103juan/crediya-microservice-loan), which asks this one who a user is.
+Users, roles and login for **CrediYa**, a fictional lender. It is one of two reactive microservices with a hexagonal architecture; the other is [crediya-microservice-loan](https://github.com/0103juan/crediya-microservice-loan), which asks this one who a user is and tells clients about their loans through an SQS queue and a Lambda function.
 
 Java 21, Spring Boot 3.5 with WebFlux, R2DBC on PostgreSQL, JWT, and a clean architecture laid out with Bancolombia's open-source [scaffold plugin](https://github.com/bancolombia/scaffold-clean-architecture). The API messages are in Spanish; this README is in English.
 
@@ -68,9 +68,11 @@ I checked this by hand on 1 October 2026, together with the loan service: the se
 
 ## Limits
 
-- A practice project: the lender is fictional and it has never run in production.
 - The seed data creates an administrator with a known password. That is for a local database only.
 - There are no integration tests against a real PostgreSQL in the build; the adapter tests mock the repository. The check against a real database was done by hand, as described above.
 - One symmetric secret signs and verifies the tokens, and the loan service needs the same secret. There is no key rotation, no refresh token and no logout.
 - Any signed-in user can look up any other user. That is what the loan service needs, and more than a client should have.
-- The work was done in branches named after user stories (`HU1`, `HU3`, `HU5`); `main` has all of it.
+
+## Where it comes from
+
+The lender is fictional and this has never run in production. It began as the practice project of a backend training programme at Pragma, which is where the user stories and the `co.com.pragma` package name come from; the work was done in branches named after those stories (`HU1`, `HU3`, `HU5`) and `main` has all of it. The design decisions, the code and the tests described here are my own.
