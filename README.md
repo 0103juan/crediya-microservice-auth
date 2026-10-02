@@ -76,3 +76,7 @@ I checked this by hand on 1 October 2026, together with the loan service: the se
 ## Where it comes from
 
 The lender is fictional and this has never run in production. It began as the practice project of a backend training programme at Pragma, which is where the user stories and the `co.com.pragma` package name come from; the work was done in branches named after those stories (`HU1`, `HU3`, `HU5`) and `main` has all of it. The design decisions, the code and the tests described here are my own.
+
+## License
+
+[MIT](LICENSE).
